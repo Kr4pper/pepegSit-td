@@ -4,7 +4,8 @@
   "description": "basic tower defense game",
   "main": "src/index.js",
   "scripts": {
-    "build": "npx rimraf dist && tsc --p tsconfig.json && xcopy .\\src\\web\\*.* .\\dist\\web",
+    "buildOLD": "npx rimraf dist && tsc --p tsconfig.json && xcopy .\\src\\web\\assets\\*.* .\\dist\\web\\assets\\",
+    "build": "npx rimraf dist && tsc --p tsconfig.json && npx webpack && xcopy .\\src\\web\\assets\\*.* .\\dist\\assets\\ && move .\\dist\\bundle.js .\\dist\\assets\\",
     "dev": "nodemon src/index.ts",
     "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,14 +13,19 @@
   "dependencies": {
     "express": "^4.19.2",
     "helmet": "^7.1.0",
+    "node-polyfill-webpack-plugin": "^4.0.0",
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^20.14.8",
     "nodemon": "^3.1.4",
+    "ts-loader": "^9.5.1",
     "tsx": "^4.15.7",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.2",
+    "webpack": "^5.92.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4"
   },
   "author": "Kr4pper",
   "license": "ISC"
