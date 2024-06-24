@@ -59,9 +59,9 @@ const renderTowerInfo = () => {
     const towersDiv = document.querySelector('div#towers')!;
     Object.entries(TOWER_BUILD_KEYS).forEach(([key, [name, stats, cost]]) => {
         towersDiv.innerHTML += `
-        <div>
-            <span>${name} [${key}]: ${stats}</span><br>
-            <span>Cost: ${cost}</span>
+        <div id="tower-${name}">
+            <div>${name} [${key}]: ${stats}</div>
+            <div style="margin-left: 20px;">Cost: <span class="cost">${cost}</span></div>
         </div>
         <br>
         `;
