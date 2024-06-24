@@ -1,5 +1,5 @@
-import {Cardinal} from './cardinal';
-import {TowerDefense} from './tower-defense';
+import {Cardinal} from '../cardinal';
+import {TowerDefense} from '../tower-defense';
 
 const CARDINAL_TO_DELTA = {
     [Cardinal.North]: [0, -1],
@@ -12,9 +12,9 @@ export class Enemy {
     public readonly img = new Image();
     private progress = 0;
     private lastMoved = Date.now();
+    private game: TowerDefense;
 
     constructor(
-        private game: TowerDefense,
         public readonly secondsPerTile: number,
         public readonly dmg: number,
         public readonly goldValue: number,
@@ -22,6 +22,10 @@ export class Enemy {
         private hp: number = maxHp,
     ) {
         this.img.src = './wippa.png';
+    }
+
+    setGame(game: TowerDefense) {
+        this.game = game;
     }
 
     move() {
@@ -47,6 +51,10 @@ export class Enemy {
 
     reachedEndOfTrack() {
         return this.trackIdx() >= this.game.track.length;
+    }
+
+    getProgress() {
+        return this.progress;
     }
 
     getPosition() {

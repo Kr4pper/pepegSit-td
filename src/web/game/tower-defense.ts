@@ -1,6 +1,6 @@
 import {Biome} from './biome';
 import {Cardinal} from './cardinal';
-import {Enemy} from './enemy';
+import {Enemy} from './enemies/enemy';
 import {Tower} from './towers';
 
 export class TowerDefense {
@@ -23,12 +23,9 @@ export class TowerDefense {
         this.traceTrack();
     }
 
-    addEnemy(e: Enemy) {
-        this.enemies.push(e);
-    }
-
-    spawnEnemy(dmg: number, hp: number, goldValue: number, secondsPerTile: number) {
-        this.addEnemy(new Enemy(this, secondsPerTile, dmg, goldValue, hp));
+    addEnemy(enemy: Enemy) {
+        enemy.setGame(this);
+        this.enemies.push(enemy);
     }
 
     removeEnemy(e: Enemy) {

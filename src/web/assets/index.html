@@ -1,5 +1,12 @@
+<html>
+
+<head>
+    <title>pepegSit TD</title>
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+</head>
+
 <div style="height: 35px; font-size: 35; margin-bottom: 50px;">
-    <img src="pepegSit.jpg" style="float: left; margin-right: 10px;">
+    <img src="./pepegSit.jpg" style="float: left; margin-right: 10px;">
     <div>Defense</div>
 </div>
 
@@ -9,10 +16,28 @@
 </div>
 
 <canvas class="myCanvas" style="border: 1px solid white" width="500" height="500">
-    <p>Add suitable fallback here.</p>
+    <p>This is where the game canvas should have loaded, make sure you don't have any browser extensions preventing it
+        from loading</p>
 </canvas>
 
-<img src="pepegSit.jpg" style="position: absolute; right: 0px; bottom: 0px;">
+<div id="tutorial">
+    <h3>How To Play</h3>
+    <div>
+        <span>You must defend your home from nasty invaders.</span><br>
+        <span>They will arrive in waves, make sure to wipe them out.</span><br>
+        <span>Build your defense from a variety of towers to stop them.</span><br>
+        <span>Select an available tile by using left click and then build one of the available towers using the key
+            listed below.</span>
+    </div>
+    <h3>Available Towers</h3>
+    <div id="towers">
+        <!-- populated from js -->
+    </div>
+</div>
+
+<img src="./pepegSit.jpg" style="position: absolute; right: 0px; bottom: 0px;">
 
 <script>var exports = {};</script>
 <script src="./bundle.js" type="text/javascript"></script>
+
+</html>
