@@ -125,4 +125,8 @@ export class TowerDefense {
             }
         }, wave.spawnDelay * 1000);
     }
+
+    currentWave() {
+        return this.waves[this.waveIdx];
+    }
 }

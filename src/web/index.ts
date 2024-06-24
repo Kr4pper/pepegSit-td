@@ -36,14 +36,20 @@ canvas.addEventListener('click', event => {
     selectedTile = [x, y];
 });
 
-const goldDisplay = document.querySelector('span#gold')!;
+const statsDisplay = document.querySelector('div#stats')!;
+const goldDisplay = statsDisplay.querySelector('span#gold')!;
 const updateGold = (gold: number) => {
     goldDisplay.innerHTML = gold.toString();
 };
 
-const hpDisplay = document.querySelector('span#hp')!;
+const hpDisplay = statsDisplay.querySelector('span#hp')!;
 const updateHp = (hp: number) => {
     hpDisplay.innerHTML = hp.toString();
+};
+
+const waveDisplay = statsDisplay.querySelector('span#wave')!;
+const updateWave = (wave: number) => {
+    waveDisplay.innerHTML = wave.toString();
 };
 
 const game = new TowerDefense(convertToTiles(map1), 100, 100, defaultWaves);
@@ -148,6 +154,7 @@ function gameLoop() {
     processEnemies();
 
     updateGold(game.playerGold);
+    updateWave(game.currentWave().id);
     updateHp(game.playerHp);
 
     window.requestAnimationFrame(gameLoop);
