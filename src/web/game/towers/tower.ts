@@ -1,9 +1,12 @@
 import {Enemy} from '../enemies';
 
-export type TowerBaseStats = {
-    dmg: number;
-    atkCooldown: number;
-    range: number;
+export type TowerStats = {
+    dmg?: number;
+    atkCooldown?: number;
+    range?: number;
+};
+
+export type TowerBaseStats = Required<TowerStats> & {
     cost: number;
 };
 
@@ -19,19 +22,19 @@ export abstract class Tower {
         private range: number,
     ) {}
 
-    attack(enemies: Enemy[]) {
+    attack(enemies: Enemy[], modifiers?: TowerStats) {
         const now = Date.now();
-        const mayAttack = (now - this.lastAttacked) > this.atkCooldown * 1000;
+        const mayAttack = (now - this.lastAttacked * (modifiers?.atkCooldown || 1)) > this.atkCooldown * 1000;
         if (!mayAttack) return false;
 
         const inRange = enemies.filter(e => {
             const [x, y] = e.getPosition();
             const distance = Math.sqrt(Math.pow(this.tileX - x, 2) + Math.pow(this.tileY - y, 2));
-            return distance <= this.range;
+            return distance <= (this.range + (modifiers?.range || 0));
         });
         if (!inRange.length) return false;
 
-        this.pickTargets(inRange).forEach(e => e.takeDamage(this.dmg));
+        this.pickTargets(inRange).forEach(e => e.takeDamage(this.dmg + (modifiers?.dmg || 0)));
         this.lastAttacked = now;
         return true;
     }
