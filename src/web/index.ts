@@ -1,21 +1,18 @@
-import {Biome, TowerDefense, convertToTiles, map1, SitterTower, KnightTower, Tower, defaultWaves} from './game';
+import {Biome, TowerDefense, convertToTiles, map1, SitterTower, KnightTower, Tower, defaultWaves, TowerBaseStats} from './game';
 
 const TILE_SIZE = 50;
+const game = new TowerDefense(convertToTiles(map1), 100, 100, defaultWaves);
 
 let canvas = document.querySelector('canvas#td')! as HTMLCanvasElement;
 let ctx = canvas.getContext('2d')!;
 let keyPresses: Record<string, boolean> = {};
 
 // TODO: swap to direct event handler?
+const keyDownListener = (event: KeyboardEvent) => keyPresses[event.key] = true;
 window.addEventListener('keydown', keyDownListener);
-function keyDownListener(event: KeyboardEvent) {
-    keyPresses[event.key] = true;
-}
 
+const keyUpListener = (event: KeyboardEvent) => keyPresses[event.key] = false;
 window.addEventListener('keyup', keyUpListener);
-function keyUpListener(event: KeyboardEvent) {
-    keyPresses[event.key] = false;
-}
 
 let selectedTile: [number, number] = [-1, -1];
 canvas.addEventListener('click', event => {
@@ -38,36 +35,34 @@ canvas.addEventListener('click', event => {
 
 const statsDisplay = document.querySelector('div#stats')!;
 const goldDisplay = statsDisplay.querySelector('span#gold')!;
-const updateGold = (gold: number) => {
-    goldDisplay.innerHTML = gold.toString();
-};
+const updateGold = (gold: number) => goldDisplay.innerHTML = gold.toString();
 
 const hpDisplay = statsDisplay.querySelector('span#hp')!;
-const updateHp = (hp: number) => {
-    hpDisplay.innerHTML = hp.toString();
-};
+const updateHp = (hp: number) => hpDisplay.innerHTML = hp.toString();
 
 const waveDisplay = statsDisplay.querySelector('span#wave')!;
-const updateWave = (wave: number) => {
-    waveDisplay.innerHTML = wave.toString();
+const updateWave = (wave: number) => waveDisplay.innerHTML = wave.toString();
+
+const TOWER_BUILD_KEYS: Record<string, [name: string, type: string, stats: TowerBaseStats, (x: number, y: number) => Tower]> = {
+    '1': ['Sitter', 'AOE', SitterTower.getBaseStats(), (x, y) => new SitterTower(x, y)],
+    '2': ['Knight', 'Single Target', KnightTower.getBaseStats(), (x, y) => new KnightTower(x, y)],
 };
-
-const game = new TowerDefense(convertToTiles(map1), 100, 100, defaultWaves);
-updateGold(game.playerGold);
-updateHp(game.playerHp);
-
-const TOWER_BUILD_KEYS: Record<string, [name: string, stats: string, cost: number, (x: number, y: number) => Tower]> = {
-    '1': ['Sitter', '(aoe, low damage, medium range)', SitterTower.getCost(), (x, y) => new SitterTower(x, y)],
-    '2': ['Knight', '(single target, medium damage, low range)', KnightTower.getCost(), (x, y) => new KnightTower(x, y)],
+const TOWER_STAT_UI_MAP: Record<keyof TowerBaseStats, string> = {
+    dmg: 'Damage',
+    atkCooldown: 'Cooldown',
+    range: 'Range',
+    cost: 'Cost',
 };
-
 const renderTowerInfo = () => {
     const towersDiv = document.querySelector('div#towers')!;
-    Object.entries(TOWER_BUILD_KEYS).forEach(([key, [name, stats, cost]]) => {
+    Object.entries(TOWER_BUILD_KEYS).forEach(([key, [name, type, stats]]) => {
         towersDiv.innerHTML += `
         <div id="tower-${name}">
-            <div>${name} [${key}]: ${stats}</div>
-            <div style="margin-left: 20px;">Cost: <span class="cost">${cost}</span></div>
+            <div>${name} [${key}]:</div>
+            <div style="margin-left: 20px;"><span>Type: ${type}</span></div>
+            ${Object.entries(stats).reduce((acc, [k, v]) => acc +
+            `<div style="margin-left: 20px;">${TOWER_STAT_UI_MAP[k as keyof TowerBaseStats]}: <span id="stat-${k}">${v}</span></div>`,
+            '')}
         </div>
         <br>
         `;
@@ -83,10 +78,10 @@ const processKeyPresses = () => {
     const towerToBuild: keyof typeof TOWER_BUILD_KEYS = Object.keys(TOWER_BUILD_KEYS).find(k => keyPresses[k]) as any;
     if (!towerToBuild) return;
 
-    const [_, __, towerCost, towerBuilder] = TOWER_BUILD_KEYS[towerToBuild];
-    if (game.playerGold < towerCost) return;
+    const [_, __, towerStats, towerBuilder] = TOWER_BUILD_KEYS[towerToBuild];
+    if (game.playerGold < towerStats.cost) return;
 
-    game.playerGold -= towerCost;
+    game.playerGold -= towerStats.cost;
     updateGold(game.playerGold);
     game.addTower(towerBuilder(x, y));
     game.setBiome(Biome.Occupied, x, y);

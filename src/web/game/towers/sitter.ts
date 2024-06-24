@@ -1,9 +1,10 @@
 import {Enemy} from '../enemies';
-import {Tower} from './tower';
+import {Tower, TowerBaseStats} from './tower';
 
 export class SitterTower extends Tower {
     constructor(tileX: number, tileY: number) {
-        super(tileX, tileY, 1, 1, 4);
+        const stats = SitterTower.getBaseStats();
+        super(tileX, tileY, stats.dmg, stats.atkCooldown, stats.range);
 
         this.img.src = './pepegSit.jpg';
     }
@@ -12,7 +13,12 @@ export class SitterTower extends Tower {
         return enemies;
     }
 
-    static getCost() {
-        return 100;
+    static getBaseStats(): TowerBaseStats {
+        return {
+            dmg: 1,
+            atkCooldown: 1,
+            range: 4,
+            cost: 100,
+        };
     }
 }

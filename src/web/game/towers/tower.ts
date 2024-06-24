@@ -1,5 +1,12 @@
 import {Enemy} from '../enemies';
 
+export type TowerBaseStats = {
+    dmg: number;
+    atkCooldown: number;
+    range: number;
+    cost: number;
+};
+
 export abstract class Tower {
     public img = new Image();
     private lastAttacked = Date.now();
