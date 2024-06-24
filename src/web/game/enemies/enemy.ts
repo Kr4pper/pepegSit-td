@@ -11,7 +11,7 @@ const CARDINAL_TO_DELTA = {
 export class Enemy {
     public readonly img = new Image();
     private progress = 0;
-    private lastMoved = Date.now();
+    private lastMoved: number;
     private game: TowerDefense;
 
     constructor(
@@ -19,10 +19,8 @@ export class Enemy {
         public readonly dmg: number,
         public readonly goldValue: number,
         public readonly maxHp: number,
-        private hp: number = maxHp,
-    ) {
-        this.img.src = './wippa.png';
-    }
+        public hp: number = maxHp,
+    ) {}
 
     setGame(game: TowerDefense) {
         this.game = game;
@@ -30,27 +28,25 @@ export class Enemy {
 
     move() {
         const now = Date.now();
-        const elapsed = now - this.lastMoved;
+        const elapsed = this.lastMoved ? now - this.lastMoved : 0;
 
         this.progress += elapsed / this.secondsPerTile / 1000;
         this.lastMoved = now;
+
+        if (!this.reachedEndOfTrack()) return true;
     }
 
     takeDamage(incoming: number) {
         this.hp -= incoming;
-        console.log(`Remaining HP: ${this.hp} / ${this.maxHp}`);
-    }
 
-    isDead() {
-        return this.hp <= 0;
-    }
-
-    private trackIdx() {
-        return Math.floor(this.progress);
+        if (this.hp <= 0) this.game.killEnemy(this);
     }
 
     reachedEndOfTrack() {
-        return this.trackIdx() >= this.game.track.length;
+        const reachedEnd = this.progress >= this.game.track.length;
+        if (reachedEnd) this.game.leakEnemy(this);
+
+        return reachedEnd;
     }
 
     getProgress() {
@@ -58,7 +54,7 @@ export class Enemy {
     }
 
     getPosition() {
-        const tile = this.game.track[this.trackIdx()];
+        const tile = this.game.track[Math.floor(this.progress)];
         const partial = this.progress % 1;
         const [dx, dy] = CARDINAL_TO_DELTA[partial < 0.5 ? tile.from : tile.to];
         const scaled = partial < 0.5 ? (0.5 - partial) : (partial - 0.5);

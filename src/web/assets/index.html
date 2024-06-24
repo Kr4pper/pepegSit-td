@@ -15,23 +15,27 @@
     <div style="float: right;">Hp: <span id="hp"></span></div>
 </div>
 
-<canvas class="myCanvas" style="border: 1px solid white" width="500" height="500">
-    <p>This is where the game canvas should have loaded, make sure you don't have any browser extensions preventing it
-        from loading</p>
-</canvas>
+<div>
+    <canvas id="td" style="border: 1px solid white; margin-right: 10px; margin-bottom: 10px; float: left;" width="500" height="500">
+        <p>This is where the game canvas should have loaded, make sure you don't have any browser extensions preventing
+            it from loading</p>
+    </canvas>
+    <div>
+        <div id="towers">
+            <span>TOWERS</span><br><br>
+            <!-- populated from js -->
+        </div>
+    </div>
+</div>
 
-<div id="tutorial">
+<div id="tutorial" style="float: left;">
     <h3>How To Play</h3>
     <div>
         <span>You must defend your home from nasty invaders.</span><br>
         <span>They will arrive in waves, make sure to wipe them out.</span><br>
         <span>Build your defense from a variety of towers to stop them.</span><br>
-        <span>Select an available tile by using left click and then build one of the available towers using the key
-            listed below.</span>
-    </div>
-    <h3>Available Towers</h3>
-    <div id="towers">
-        <!-- populated from js -->
+        <span>Select an available tile by using left click and then build one of the available towers using the listed
+            key binding.</span>
     </div>
 </div>
 

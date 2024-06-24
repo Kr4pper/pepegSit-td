@@ -1,7 +1,9 @@
 import {Enemy} from './enemy';
 
-export class Wippa {
-    static withStats(maxHp = 10, goldValue = 20) {
-        return new Enemy(2, 1, goldValue, maxHp);
+export class Wippa extends Enemy {
+    constructor() {
+        super(1.5, 1, 20, 10);
+
+        this.img.src = './wippa.png';
     }
 }

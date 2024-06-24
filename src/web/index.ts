@@ -1,8 +1,8 @@
-import {Biome, Enemy, Wippa, TowerDefense, convertToTiles, map1, SitterTower, KnightTower, Tower} from './game';
+import {Biome, TowerDefense, convertToTiles, map1, SitterTower, KnightTower, Tower, defaultWaves} from './game';
 
 const TILE_SIZE = 50;
 
-let canvas = document.querySelector('canvas')!;
+let canvas = document.querySelector('canvas#td')! as HTMLCanvasElement;
 let ctx = canvas.getContext('2d')!;
 let keyPresses: Record<string, boolean> = {};
 
@@ -46,24 +46,25 @@ const updateHp = (hp: number) => {
     hpDisplay.innerHTML = hp.toString();
 };
 
-const game = new TowerDefense(convertToTiles(map1), 100, 100);
+const game = new TowerDefense(convertToTiles(map1), 100, 100, defaultWaves);
 updateGold(game.playerGold);
 updateHp(game.playerHp);
 
-const TOWER_BUILD_KEYS: Record<string, [string, number, (x: number, y: number) => Tower]> = {
-    '1': ['Sitter (aoe, low damage, medium range)', SitterTower.getCost(), (x, y) => new SitterTower(x, y)],
-    '2': ['Knight (single target, medium damage, low range)', KnightTower.getCost(), (x, y) => new KnightTower(x, y)],
+const TOWER_BUILD_KEYS: Record<string, [name: string, stats: string, cost: number, (x: number, y: number) => Tower]> = {
+    '1': ['Sitter', '(aoe, low damage, medium range)', SitterTower.getCost(), (x, y) => new SitterTower(x, y)],
+    '2': ['Knight', '(single target, medium damage, low range)', KnightTower.getCost(), (x, y) => new KnightTower(x, y)],
 };
 
-const renderTutorial = () => {
-    const tutorialDiv = document.querySelector('div#tutorial')!;
-    const towersDiv = tutorialDiv.querySelector('div#towers')!;
-    Object.entries(TOWER_BUILD_KEYS).forEach(([key, [description, cost]]) => {
+const renderTowerInfo = () => {
+    const towersDiv = document.querySelector('div#towers')!;
+    Object.entries(TOWER_BUILD_KEYS).forEach(([key, [name, stats, cost]]) => {
         towersDiv.innerHTML += `
         <div>
-            <span>Key: ${key}, Tower: ${description}, Cost: ${cost}</span>
+            <span>${name} [${key}]: ${stats}</span><br>
+            <span>Cost: ${cost}</span>
         </div>
-    `;
+        <br>
+        `;
     });
 };
 
@@ -76,7 +77,7 @@ const processKeyPresses = () => {
     const towerToBuild: keyof typeof TOWER_BUILD_KEYS = Object.keys(TOWER_BUILD_KEYS).find(k => keyPresses[k]) as any;
     if (!towerToBuild) return;
 
-    const [_, towerCost, towerBuilder] = TOWER_BUILD_KEYS[towerToBuild];
+    const [_, __, towerCost, towerBuilder] = TOWER_BUILD_KEYS[towerToBuild];
     if (game.playerGold < towerCost) return;
 
     game.playerGold -= towerCost;
@@ -93,7 +94,7 @@ const biomeStyles = {
     [Biome.Blocked]: 'rgb(255, 255, 255)',
 };
 
-const processTiles = (game: TowerDefense) => {
+const processTiles = () => {
     game.tiles.forEach(({x, y, biome}) => {
         ctx.fillStyle = biomeStyles[biome];
         ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, (x + 1) * TILE_SIZE, (y + 1) * TILE_SIZE);
@@ -106,7 +107,7 @@ const processSelectedTile = () => {
     ctx.strokeRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 };
 
-const processTowers = (game: TowerDefense) => {
+const processTowers = () => {
     game.towers.forEach(t => {
         ctx.drawImage(t.img, (t.tileX + 0.1) * TILE_SIZE, (t.tileY + 0.1) * TILE_SIZE, 0.8 * TILE_SIZE, 0.8 * TILE_SIZE);
 
@@ -117,32 +118,23 @@ const processTowers = (game: TowerDefense) => {
     });
 };
 
-const processEnemies = (game: TowerDefense) => {
+const processEnemies = () => {
     game.enemies.forEach(e => {
-        if (e.isDead()) {
-            game.playerGold += e.goldValue;
-            updateGold(game.playerGold);
-
-            game.removeEnemy(e);
-            game.addEnemy(new Enemy(e.secondsPerTile, e.dmg, Math.ceil(e.goldValue * 1.1), Math.ceil(e.maxHp * 1.1))); // TODO
-            return;
-        }
-
-        e.move();
-
-        if (e.reachedEndOfTrack()) {
-            game.playerHp -= e.dmg;
-            updateHp(game.playerHp);
-
-            game.removeEnemy(e);
-            game.addEnemy(new Enemy(e.secondsPerTile, e.dmg, Math.floor(e.maxHp * 0.9), Math.floor(e.goldValue * 0.9))); // TODO
-        }
-        else {
+        if (e.move()) {
             const [x, y] = e.getPosition();
             ctx.drawImage(
                 e.img,
                 x * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.width),
                 y * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.height),
+            );
+
+            // hp bar
+            ctx.fillStyle = 'red';
+            ctx.fillRect(
+                x * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.width),
+                y * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.height),
+                e.hp / e.maxHp * 0.8 * TILE_SIZE,
+                5,
             );
         }
     });
@@ -150,15 +142,18 @@ const processEnemies = (game: TowerDefense) => {
 
 function gameLoop() {
     processKeyPresses();
-    processTiles(game);
+    processTiles();
     processSelectedTile();
-    processTowers(game);
-    processEnemies(game);
+    processTowers();
+    processEnemies();
+
+    updateGold(game.playerGold);
+    updateHp(game.playerHp);
 
     window.requestAnimationFrame(gameLoop);
 }
 
-renderTutorial();
+renderTowerInfo();
 
-game.addEnemy(Wippa.withStats(10, 20)); // TODO spawn wave 1 instead
+game.sendWave();
 gameLoop();

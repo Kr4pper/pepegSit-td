@@ -1,18 +1,21 @@
 import {Biome} from './biome';
 import {Cardinal} from './cardinal';
-import {Enemy} from './enemies/enemy';
+import {Enemy} from './enemies';
 import {Tower} from './towers';
+import {Wave} from './waves';
 
 export class TowerDefense {
     public readonly enemies: Enemy[] = [];
     public readonly towers: Tower[] = [];
     public readonly tiles: {x: number, y: number, biome: Biome;}[] = [];
     public readonly track: {x: number, y: number; to: Cardinal; from: Cardinal;}[] = [];
+    private waveIdx = 0;
 
     constructor(
         private map: Biome[][],
         public playerHp: number,
         public playerGold: number,
+        private waves: Wave[],
     ) {
         for (let x = 0; x < map[0].length; x++) {
             for (let y = 0; y < map.length; y++) {
@@ -31,6 +34,31 @@ export class TowerDefense {
     removeEnemy(e: Enemy) {
         const eIdx = this.enemies.findIndex(_e => _e === e);
         this.enemies.splice(eIdx, 1);
+    }
+
+    killEnemy(e: Enemy) {
+        this.playerGold += e.goldValue;
+        this.removeEnemy(e);
+        this.checkRemainingEnemies();
+    }
+
+    leakEnemy(e: Enemy) {
+        this.playerHp -= e.dmg;
+        this.removeEnemy(e);
+        this.checkRemainingEnemies();
+    }
+
+    private checkRemainingEnemies() {
+        if (!this.enemies.length) {
+            if (this.waveIdx === this.waves.length - 1) {
+                console.log('last wave has been defeated, endless mode coming soonTM');
+                return;
+            }
+
+            this.playerGold += this.waves[this.waveIdx].goldReward;
+            this.waveIdx++;
+            this.sendWave();
+        }
     }
 
     addTower(t: Tower) {
@@ -66,12 +94,10 @@ export class TowerDefense {
             const candidates = onTrack.filter(([x, y]) => !visited.has(`${x},${y}`));
 
             if (candidates.length === 0) {
-                console.log(this.track);
                 return;
             }
 
             if (candidates.length > 1) {
-                console.warn(`Previously visited: ${[...visited]}`);
                 throw new Error(`Unexpected amount of potential track extensions, expected 1 but got "${candidates}"`);
             }
 
@@ -85,5 +111,18 @@ export class TowerDefense {
             this.track.push({x, y, from, to: (from + 2) % 4}); // default init to for last tile
             visited.add(`${x},${y}`);
         }
+    }
+
+    sendWave() {
+        const wave = this.waves[this.waveIdx];
+
+        let enemyIdx = 0;
+        const spawner = setInterval(() => {
+            this.addEnemy(wave.enemies[enemyIdx++]);
+
+            if (enemyIdx > wave.enemies.length - 1) {
+                clearInterval(spawner);
+            }
+        }, wave.spawnDelay * 1000);
     }
 }
