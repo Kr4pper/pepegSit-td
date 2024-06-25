@@ -48,8 +48,8 @@ const TOWER_STAT_UI_MAP: Record<keyof TowerBaseStats, string> = {
     range: 'Range',
     cost: 'Cost',
 };
-const renderTowerInfo = () => {
-    const towersDiv = document.querySelector('div#towers')!;
+const renderTowerBuildingInfo = () => {
+    const towersDiv = document.querySelector('div#tower-building')!;
     Object.entries(TOWER_DATA).forEach(([type, {stats}]) => {
         towersDiv.innerHTML += `
         <div id="tower-${type}">
@@ -89,12 +89,32 @@ const checkForTowerSelling = () => {
     game.sellTowerAt(x, y);
 };
 
-const processKeyPresses = () => {
+const towerStatsDisplay = document.querySelector('span#selected-tower')!;
+const printTowerStats = () => {
     const [x, y] = selectedTile;
-    if (x === -1 || y === -1) return; // move down later maybe
+    if (!game.isBiome(Biome.Tower, x, y)) {
+        towerStatsDisplay.innerHTML = '';
+        return;
+    }
 
+    const tower = game.getTowerAt(x, y);
+    if (!tower) return;
+
+    towerStatsDisplay.innerHTML = `
+        <span>${tower.type} at (${x + 1} | ${y + 1}) damage stats:</span><br>
+        <span style="margin-left: 20px;">Total: ${tower.getDmgDealtTotal()}</span><br>
+        ${Object.entries(tower.getDmgDealtByType())
+            .filter(([_, v]) => v > 0)
+            .reduce((acc, [k, v]) =>
+                acc + `<span style="margin-left: 20px;">vs ${k}: ${v}</span><br>`,
+                '')}
+    `;
+};
+
+const processKeyPresses = () => {
     checkForTowerBuilding();
     checkForTowerSelling();
+    printTowerStats();
 };
 
 const biomeStyles = {
@@ -164,7 +184,7 @@ function gameLoop() {
     window.requestAnimationFrame(gameLoop);
 }
 
-renderTowerInfo();
+renderTowerBuildingInfo();
 
 game.sendWave();
 gameLoop();

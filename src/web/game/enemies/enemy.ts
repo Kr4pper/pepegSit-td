@@ -1,5 +1,6 @@
 import {Cardinal} from '../cardinal';
 import {TowerDefense} from '../tower-defense';
+import {EnemyType} from './enemy-type';
 
 const CARDINAL_TO_DELTA = {
     [Cardinal.North]: [0, -1],
@@ -15,6 +16,7 @@ export class Enemy {
     private game: TowerDefense;
 
     constructor(
+        public type: EnemyType,
         public readonly secondsPerTile: number,
         public readonly dmg: number,
         public readonly goldValue: number,
@@ -36,10 +38,15 @@ export class Enemy {
         if (!this.reachedEndOfTrack()) return true;
     }
 
-    takeDamage(incoming: number) {
+    /**
+     * @returns damage dealt to the enemy
+     */
+    takeDamage(incoming: number): number {
         this.hp -= incoming;
 
         if (this.hp <= 0) this.game.killEnemy(this);
+
+        return incoming + (this.hp < 0 ? this.hp : 0);
     }
 
     reachedEndOfTrack() {

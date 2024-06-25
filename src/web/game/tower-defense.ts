@@ -26,69 +26,6 @@ export class TowerDefense {
         this.traceTrack();
     }
 
-    addEnemy(enemy: Enemy) {
-        enemy.setGame(this);
-        this.enemies.push(enemy);
-    }
-
-    removeEnemy(e: Enemy) {
-        const eIdx = this.enemies.findIndex(_e => _e === e);
-        this.enemies.splice(eIdx, 1);
-    }
-
-    killEnemy(e: Enemy) {
-        this.playerGold += e.goldValue;
-        this.removeEnemy(e);
-        this.checkRemainingEnemies();
-    }
-
-    leakEnemy(e: Enemy) {
-        this.playerHp -= e.dmg;
-        this.removeEnemy(e);
-        this.checkRemainingEnemies();
-    }
-
-    private checkRemainingEnemies() {
-        if (!this.enemies.length) {
-            if (this.waveIdx === this.waves.length - 1) {
-                console.log('last wave has been defeated, endless mode coming soonTM');
-                return;
-            }
-
-            this.playerGold += this.waves[this.waveIdx].goldReward;
-            this.waveIdx++;
-            this.sendWave();
-        }
-    }
-
-    addTower(t: Tower) {
-        this.towers.push(t);
-    }
-
-    sellTowerAt(x: number, y: number) {
-        const toSell = this.towers.find(t => t.tileX === x && t.tileY === y);
-        if (!toSell) {
-            return;
-        }
-
-        this.playerGold += TOWER_DATA[toSell.type].stats.cost * 0.7;
-        const tIdx = this.towers.findIndex(_t => _t === toSell);
-        this.towers.splice(tIdx, 1);
-        this.setBiome(Biome.Buildable, x, y);
-    }
-
-    biomeAt(x: number, y: number) {
-        return this.map.at(y)?.at(x);
-    }
-
-    isBiome(biome: Biome, x: number, y: number) {
-        return this.biomeAt(x, y) === biome;
-    }
-
-    setBiome(biome: Biome, x: number, y: number) {
-        this.map[y][x] = biome;
-    }
-
     private traceTrack() {
         this.track.push({x: 0, y: 0, to: Cardinal.North, from: Cardinal.North}); // placeholder cardinals, replace after track extended once
         const visited = new Set<string>(['0,0']);
@@ -125,6 +62,41 @@ export class TowerDefense {
         }
     }
 
+    private addEnemy(enemy: Enemy) {
+        enemy.setGame(this);
+        this.enemies.push(enemy);
+    }
+
+    private removeEnemy(e: Enemy) {
+        const eIdx = this.enemies.findIndex(_e => _e === e);
+        this.enemies.splice(eIdx, 1);
+    }
+
+    killEnemy(e: Enemy) {
+        this.playerGold += e.goldValue;
+        this.removeEnemy(e);
+        this.checkRemainingEnemies();
+    }
+
+    leakEnemy(e: Enemy) {
+        this.playerHp -= e.dmg;
+        this.removeEnemy(e);
+        this.checkRemainingEnemies();
+    }
+
+    private checkRemainingEnemies() {
+        if (!this.enemies.length) {
+            if (this.waveIdx === this.waves.length - 1) {
+                console.log('last wave has been defeated, endless mode coming soonTM');
+                return;
+            }
+
+            this.playerGold += this.waves[this.waveIdx].goldReward;
+            this.waveIdx++;
+            this.sendWave();
+        }
+    }
+
     sendWave() {
         const wave = this.waves[this.waveIdx];
 
@@ -140,5 +112,35 @@ export class TowerDefense {
 
     currentWave() {
         return this.waves[this.waveIdx];
+    }
+
+    addTower(t: Tower) {
+        this.towers.push(t);
+    }
+
+    getTowerAt(x: number, y: number) {
+        return this.towers.find(t => t.tileX === x && t.tileY === y);
+    }
+
+    sellTowerAt(x: number, y: number) {
+        const toSell = this.getTowerAt(x, y);
+        if (!toSell) return;
+
+        this.playerGold += TOWER_DATA[toSell.type].stats.cost * 0.7;
+        const tIdx = this.towers.findIndex(_t => _t === toSell);
+        this.towers.splice(tIdx, 1);
+        this.setBiome(Biome.Buildable, x, y);
+    }
+
+    biomeAt(x: number, y: number) {
+        return this.map.at(y)?.at(x);
+    }
+
+    isBiome(biome: Biome, x: number, y: number) {
+        return this.biomeAt(x, y) === biome;
+    }
+
+    setBiome(biome: Biome, x: number, y: number) {
+        this.map[y][x] = biome;
     }
 }

@@ -1,4 +1,4 @@
-import {Enemy} from '../enemies';
+import {Enemy, EnemyType} from '../enemies';
 import {TowerType} from './tower-type';
 
 export type TowerStats = {
@@ -13,6 +13,8 @@ export type TowerBaseStats = Required<TowerStats> & {
 
 export abstract class Tower {
     public img = new Image();
+    private dmgDealtTotal = 0;
+    private dmgDealtByType: Record<EnemyType, number> = {[EnemyType.Wippa]: 0, [EnemyType.Weirdge]: 0};
     private lastAttacked = Date.now();
 
     constructor(
@@ -40,13 +42,25 @@ export abstract class Tower {
         });
         if (!inRange.length) return false;
 
-        this.pickTargets(inRange).forEach(e => e.takeDamage(this.dmg + (modifiers?.dmg || 0)));
+        for (const e of this.pickTargets(inRange)) {
+            const dmg = e.takeDamage(this.dmg + (modifiers?.dmg || 0));
+            this.dmgDealtTotal += dmg;
+            this.dmgDealtByType[e.type] += dmg;
+        }
         this.lastAttacked = now;
         return true;
     }
 
     value() {
         return this.cost;
+    }
+
+    getDmgDealtTotal() {
+        return this.dmgDealtTotal;
+    }
+
+    getDmgDealtByType() {
+        return this.dmgDealtByType;
     }
 
     /**

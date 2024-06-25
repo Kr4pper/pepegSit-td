@@ -5,6 +5,7 @@ import {TowerType} from './tower-type';
 export class SitterTower extends Tower {
     constructor(tileX: number, tileY: number) {
         const stats = SitterTower.getBaseStats();
+        
         super(
             TowerType.Sitter,
             tileX,
@@ -14,7 +15,7 @@ export class SitterTower extends Tower {
             stats.range,
             stats.cost,
         );
-
+        
         this.img.src = './pepegSit.jpg';
     }
 
