@@ -3,7 +3,7 @@ import {Tower, TowerBaseStats} from './tower';
 import {TowerType} from './tower-type';
 
 export class SniperTower extends Tower {
-    constructor(tileX: number, tileY: number) {
+    constructor(tileX: number, tileY: number, cost: number) {
         const stats = SniperTower.getBaseStats();
 
         super(
@@ -13,7 +13,7 @@ export class SniperTower extends Tower {
             stats.dmg,
             stats.atkCooldown,
             stats.range,
-            stats.baseCost,
+            cost,
         );
 
         this.img.src = './sniper.png';
@@ -22,6 +22,8 @@ export class SniperTower extends Tower {
     pickTargets(enemies: Enemy[]): Enemy[] {
         return [enemies.sort((e1, e2) => e2.maxHp - e1.maxHp)[0]];
     }
+
+    setIdle(idle: boolean): void {}
 
     static getBaseStats(): TowerBaseStats {
         return {

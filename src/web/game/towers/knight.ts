@@ -3,7 +3,7 @@ import {Tower, TowerBaseStats} from './tower';
 import {TowerType} from './tower-type';
 
 export class KnightTower extends Tower {
-    constructor(tileX: number, tileY: number) {
+    constructor(tileX: number, tileY: number, cost: number) {
         const stats = KnightTower.getBaseStats();
 
         super(
@@ -13,7 +13,7 @@ export class KnightTower extends Tower {
             stats.dmg,
             stats.atkCooldown,
             stats.range,
-            stats.baseCost,
+            cost,
         );
 
         this.img.src = './knight.png';
@@ -22,6 +22,8 @@ export class KnightTower extends Tower {
     pickTargets(enemies: Enemy[]): Enemy[] {
         return [enemies.sort((e1, e2) => e2.getProgress() - e1.getProgress())[0]]; // attack furthest enemy
     }
+
+    setIdle(idle: boolean): void {}
 
     static getBaseStats(): TowerBaseStats {
         return {

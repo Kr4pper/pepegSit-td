@@ -21,6 +21,8 @@
 ✓ sniper tower
 ✓ endless mode
 ✓ infinite waves (weight based, random enemies)
+✓ fast forward mode
+✓ tower idle animation
 game restarting
 end/restart game after losing
 tower description

@@ -30,28 +30,33 @@ export abstract class Tower {
     /**
      * @returns true iff an attack was made
      */
-    attack(enemies: Enemy[], modifiers?: TowerStats): boolean {
-        const now = Date.now();
-        const mayAttack = (now - this.lastAttacked * (modifiers?.atkCooldown || 1)) > this.atkCooldown * 1000;
-        if (!mayAttack) return false;
-
+    attack(enemies: Enemy[], timeMultiplier: number, modifiers?: TowerStats): boolean {
         const inRange = enemies.filter(e => {
             const [x, y] = e.getPosition();
-            const distance = Math.sqrt(Math.pow(this.tileX - x, 2) + Math.pow(this.tileY - y, 2));
+            const distance = Math.sqrt(Math.pow(this.tileX + 0.5 - x, 2) + Math.pow(this.tileY + 0.5 - y, 2));
             return distance <= (this.range + (modifiers?.range || 0));
         });
-        if (!inRange.length) return false;
+        if (!inRange.length) {
+            this.setIdle(true);
+            return false;
+        }
+
+        const now = Date.now();
+        const elapsed = (now - this.lastAttacked) * timeMultiplier;
+        const mayAttack = elapsed * (modifiers?.atkCooldown || 1) > this.atkCooldown * 1000;
+        if (!mayAttack) return false;
 
         for (const e of this.pickTargets(inRange)) {
             const dmg = e.takeDamage(this.dmg + (modifiers?.dmg || 0));
             this.dmgDealtTotal += dmg;
             this.dmgDealtByType[e.type] += dmg;
         }
+        this.setIdle(false);
         this.lastAttacked = now;
         return true;
     }
 
-    value() {
+    getCost() {
         return this.cost;
     }
 
@@ -68,4 +73,10 @@ export abstract class Tower {
      * @param enemies available targets in range of the tower
      */
     abstract pickTargets(enemies: Enemy[]): Enemy[];
+
+    /**
+     * Notifies the tower whether or not there are any enemies in range of it
+     * @param idle 
+     */
+    abstract setIdle(idle: boolean): void;
 }

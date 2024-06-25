@@ -28,9 +28,9 @@ export class Enemy {
         this.game = game;
     }
 
-    move() {
+    move(timeMultiplier: number) {
         const now = Date.now();
-        const elapsed = now - this.lastMoved;
+        const elapsed = (now - this.lastMoved) * timeMultiplier;
 
         this.progress += elapsed / this.secondsPerTile / 1000;
         this.lastMoved = now;

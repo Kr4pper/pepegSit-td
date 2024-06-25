@@ -5,14 +5,50 @@ const game = new TowerDefense(convertToTiles(map1), 100, 100, defaultWaves);
 
 let canvas = document.querySelector('canvas#td')! as HTMLCanvasElement;
 let ctx = canvas.getContext('2d')!;
-let keyPresses: Record<string, boolean> = {};
 
-// TODO: swap to direct event handler?
-const keyDownListener = (event: KeyboardEvent) => keyPresses[event.key] = true;
-window.addEventListener('keydown', keyDownListener);
+const checkForTowerBuilding = (key: string) => {
+    const [x, y] = selectedTile;
+    if (!game.isBiome(Biome.Buildable, x, y)) return;
 
-const keyUpListener = (event: KeyboardEvent) => keyPresses[event.key] = false;
-window.addEventListener('keyup', keyUpListener);
+    const towerToBuild = Object.entries(TOWER_KEY_BINDINGS).find(([_, _key]) => _key === key);
+    if (!towerToBuild) return;
+
+    const towerBuilt = game.buildTowerAt(towerToBuild[0] as TowerType, x, y);
+    if (!towerBuilt) return;
+
+    renderTowerBuildingData();
+    updateGold(game.playerGold);
+    clearSelectedTile();
+};
+
+const checkForTowerSelling = (key: string) => {
+    if (key !== 'x') return;
+
+    const [x, y] = selectedTile;
+    if (!game.isBiome(Biome.Tower, x, y)) return;
+
+    const towerSold = game.sellTowerAt(x, y);
+    if (!towerSold) return;
+
+    renderTowerBuildingData();
+    updateGold(game.playerGold);
+    clearSelectedTile();
+};
+
+const ffIconDisplay = document.getElementById('ff-icon')!;
+let fastForward = false;
+const checkForFastForward = (key: string) => {
+    if (key !== ' ') return;
+
+    fastForward = !fastForward;
+    ffIconDisplay.style.visibility = fastForward ? 'visible' : 'hidden';
+};
+
+window.addEventListener('keydown', event => [
+    checkForTowerBuilding,
+    checkForTowerSelling,
+    checkForFastForward,
+].map(listener => listener(event.key)));
 
 let selectedTile: [number, number] = [-1, -1];
 const clearSelectedTile = () => selectedTile = [-1, -1];
@@ -63,32 +99,57 @@ const renderTowerBuildingData = () => {
         '');
 };
 
-const checkForTowerBuilding = () => {
-    const [x, y] = selectedTile;
-    if (!game.isBiome(Biome.Buildable, x, y)) return;
-
-    const towerToBuild = Object.entries(TOWER_KEY_BINDINGS).find(([_, key]) => keyPresses[key]);
-    if (!towerToBuild) return;
-
-    const towerBuilt = game.buildTowerAt(towerToBuild[0] as TowerType, x, y);
-    if (!towerBuilt) return;
-
-    renderTowerBuildingData();
-    updateGold(game.playerGold);
-    clearSelectedTile();
+const biomeStyles = {
+    [Biome.Track]: 'rgb(0, 0, 0)',
+    [Biome.Buildable]: 'rgb(255, 127, 80)',
+    [Biome.Tower]: 'rgb(255, 127, 80)',
+    [Biome.Blocked]: 'rgb(255, 255, 255)',
 };
 
-const checkForTowerSelling = () => {
+const processTiles = () => {
+    game.tiles.forEach(({x, y, biome}) => {
+        ctx.fillStyle = biomeStyles[biome];
+        ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, (x + 1) * TILE_SIZE, (y + 1) * TILE_SIZE);
+    });
+};
+const processTowers = () => {
+    game.towers.forEach(t => {
+        ctx.drawImage(t.img, (t.tileX + 0.1) * TILE_SIZE, (t.tileY + 0.1) * TILE_SIZE, 0.8 * TILE_SIZE, 0.8 * TILE_SIZE);
+
+        if (t.attack(game.enemies, fastForward ? 3 : 1, {dmg: 0})) { // TODO implement multipliers
+            ctx.strokeStyle = 'white';
+            ctx.strokeRect(t.tileX * TILE_SIZE, t.tileY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        }
+    });
+};
+
+const processEnemies = () => {
+    for (let i = game.enemies.length - 1; i >= 0; i--) { // TODO sort by progress instead?
+        const e = game.enemies[i];
+        if (e.move(fastForward ? 3 : 1)) {
+            const [x, y] = e.getPosition();
+            ctx.drawImage(
+                e.img,
+                x * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.width),
+                y * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.height),
+            );
+
+            // hp bar
+            ctx.fillStyle = 'red';
+            ctx.fillRect(
+                x * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.width),
+                y * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.height),
+                e.hp / e.maxHp * 0.8 * TILE_SIZE,
+                5,
+            );
+        }
+    }
+};
+
+const processSelectedTile = () => {
     const [x, y] = selectedTile;
-    if (!game.isBiome(Biome.Tower, x, y)) return;
-    if (!keyPresses['x']) return;
-
-    const towerSold = game.sellTowerAt(x, y);
-    if (!towerSold) return;
-
-    renderTowerBuildingData();
-    updateGold(game.playerGold);
-    clearSelectedTile();
+    ctx.strokeStyle = 'blue';
+    ctx.strokeRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 };
 
 const selectedTowerStatsDisplay = document.querySelector('span#selected-tower')!;
@@ -109,72 +170,12 @@ const printSelectedTowerStats = () => {
     `;
 };
 
-const processKeyPresses = () => {
-    checkForTowerBuilding();
-    checkForTowerSelling();
-    printSelectedTowerStats();
-};
-
-const biomeStyles = {
-    [Biome.Track]: 'rgb(0, 0, 0)',
-    [Biome.Buildable]: 'rgb(255, 127, 80)',
-    [Biome.Tower]: 'rgb(255, 127, 80)',
-    [Biome.Blocked]: 'rgb(255, 255, 255)',
-};
-
-const processTiles = () => {
-    game.tiles.forEach(({x, y, biome}) => {
-        ctx.fillStyle = biomeStyles[biome];
-        ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, (x + 1) * TILE_SIZE, (y + 1) * TILE_SIZE);
-    });
-};
-
-const processSelectedTile = () => {
-    const [x, y] = selectedTile;
-    ctx.strokeStyle = 'blue';
-    ctx.strokeRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-};
-
-const processTowers = () => {
-    game.towers.forEach(t => {
-        ctx.drawImage(t.img, (t.tileX + 0.1) * TILE_SIZE, (t.tileY + 0.1) * TILE_SIZE, 0.8 * TILE_SIZE, 0.8 * TILE_SIZE);
-
-        if (t.attack(game.enemies, {dmg: 0})) { // TODO implement multipliers
-            ctx.strokeStyle = 'white';
-            ctx.strokeRect(t.tileX * TILE_SIZE, t.tileY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        }
-    });
-};
-
-const processEnemies = () => {
-    for (let i = game.enemies.length - 1; i >= 0; i--) { // TODO sort by progress instead?
-        const e = game.enemies[i];
-        if (e.move()) {
-            const [x, y] = e.getPosition();
-            ctx.drawImage(
-                e.img,
-                x * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.width),
-                y * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.height),
-            );
-
-            // hp bar
-            ctx.fillStyle = 'red';
-            ctx.fillRect(
-                x * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.width),
-                y * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.height),
-                e.hp / e.maxHp * 0.8 * TILE_SIZE,
-                5,
-            );
-        }
-    }
-};
-
 function gameLoop() {
-    processKeyPresses();
     processTiles();
     processTowers();
     processEnemies();
     processSelectedTile();
+    printSelectedTowerStats();
 
     updateGold(game.playerGold);
     updateWave(game.waveIdx + 1);

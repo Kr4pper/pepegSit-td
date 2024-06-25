@@ -3,9 +3,9 @@ import {Tower, TowerBaseStats} from './tower';
 import {TowerType} from './tower-type';
 
 export class SitterTower extends Tower {
-    constructor(tileX: number, tileY: number) {
+    constructor(tileX: number, tileY: number, cost: number) {
         const stats = SitterTower.getBaseStats();
-        
+
         super(
             TowerType.Sitter,
             tileX,
@@ -13,14 +13,23 @@ export class SitterTower extends Tower {
             stats.dmg,
             stats.atkCooldown,
             stats.range,
-            stats.baseCost,
+            cost,
         );
-        
+
         this.img.src = './pepegSit.jpg';
     }
 
     pickTargets(enemies: Enemy[]): Enemy[] {
         return enemies;
+    }
+
+    setIdle(idle: boolean): void {
+        if (idle) {
+            this.img.src = './pepegSitInVent.png';
+        }
+        else {
+            this.img.src = './pepegSit.jpg';
+        }
     }
 
     static getBaseStats(): TowerBaseStats {

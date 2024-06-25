@@ -4,17 +4,17 @@ import {SniperTower} from './sniper';
 import {Tower, TowerBaseStats} from './tower';
 import {TowerType} from './tower-type';
 
-export const TOWER_DATA: Record<TowerType, {stats: TowerBaseStats, build: (x: number, y: number) => Tower;}> = {
+export const TOWER_DATA: Record<TowerType, {stats: TowerBaseStats, build: (x: number, y: number, cost: number) => Tower;}> = {
     [TowerType.Sitter]: {
         stats: SitterTower.getBaseStats(),
-        build: (x, y) => new SitterTower(x, y),
+        build: (x, y, cost) => new SitterTower(x, y, cost),
     },
     [TowerType.Knight]: {
         stats: KnightTower.getBaseStats(),
-        build: (x, y) => new KnightTower(x, y),
+        build: (x, y, cost) => new KnightTower(x, y, cost),
     },
     [TowerType.Sniper]: {
         stats: SniperTower.getBaseStats(),
-        build: (x, y) => new SniperTower(x, y),
+        build: (x, y, cost) => new SniperTower(x, y, cost),
     }
 };

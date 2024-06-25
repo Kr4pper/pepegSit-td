@@ -36,6 +36,7 @@ export class TowerDefense {
     public readonly track: {x: number, y: number; to: Cardinal; from: Cardinal;}[] = [];
     public waveIdx = 0;
     private towerCount: Record<TowerType, number> = {[TowerType.Sitter]: 0, [TowerType.Knight]: 0, [TowerType.Sniper]: 0};
+    private activeEnemies = 0;
 
     constructor(
         private map: Biome[][],
@@ -98,14 +99,15 @@ export class TowerDefense {
     }
 
     private removeEnemy(e: Enemy) {
+        this.activeEnemies--;
         const eIdx = this.enemies.findIndex(_e => _e === e);
         this.enemies.splice(eIdx, 1);
+        this.checkRemainingEnemies();
     }
 
     killEnemy(e: Enemy) {
         this.playerGold += e.goldValue;
         this.removeEnemy(e);
-        this.checkRemainingEnemies();
     }
 
     leakEnemy(e: Enemy) {
@@ -116,11 +118,10 @@ export class TowerDefense {
         }
 
         this.removeEnemy(e);
-        this.checkRemainingEnemies();
     }
 
     private checkRemainingEnemies() {
-        if (this.enemies.length > 0) {
+        if (this.activeEnemies > 0) {
             return;
         }
 
@@ -160,6 +161,8 @@ export class TowerDefense {
     }
 
     private spawnWave(wave: Wave, hpMultiplier = 1) {
+        this.activeEnemies += wave.length;
+
         let enemyIdx = 0;
         const spawner = setInterval(() => {
             this.addEnemy(ENEMY_SPAWN[wave[enemyIdx++]](hpMultiplier));
@@ -188,7 +191,7 @@ export class TowerDefense {
         if (cost > this.playerGold) return false;
 
         this.playerGold -= cost;
-        this.addTower(TOWER_DATA[t].build(x, y));
+        this.addTower(TOWER_DATA[t].build(x, y, cost));
 
         return true;
     }
@@ -210,7 +213,7 @@ export class TowerDefense {
         const toSell = this.getTowerAt(x, y);
         if (!toSell) return false;
 
-        this.playerGold += TOWER_DATA[toSell.type].stats.baseCost * TOWER_SALE_GOLD_RECOVERY;
+        this.playerGold += toSell.getCost() * TOWER_SALE_GOLD_RECOVERY;
         this.removeTower(toSell);
 
         return true;

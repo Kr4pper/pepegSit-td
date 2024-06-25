@@ -3,7 +3,7 @@ import {EnemyType} from './enemy-type';
 
 export class Weirdge extends Enemy {
     constructor(hpMultiplier = 1) {
-        super(EnemyType.Weirdge, 2, 10, 40, 50 * hpMultiplier);
+        super(EnemyType.Weirdge, 2, 10, 40, 75 * hpMultiplier);
 
         this.img.src = './weirdge.png';
     }
