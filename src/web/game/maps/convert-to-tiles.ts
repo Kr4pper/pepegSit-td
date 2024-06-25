@@ -10,7 +10,7 @@ export const convertToTiles = (map: string) => {
                 switch (+tile) {
                     case Biome.Track: return Biome.Track;
                     case Biome.Buildable: return Biome.Buildable;
-                    case Biome.Occupied: return Biome.Occupied;
+                    case Biome.Tower: return Biome.Tower;
                     case Biome.Blocked: return Biome.Blocked;
                     default: throw new Error(`Invalid tile type: "${tile}"`);
                 }

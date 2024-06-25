@@ -1,10 +1,19 @@
 import {Enemy} from '../enemies';
 import {Tower, TowerBaseStats} from './tower';
+import {TowerType} from './tower-type';
 
 export class KnightTower extends Tower {
     constructor(tileX: number, tileY: number) {
         const stats = KnightTower.getBaseStats();
-        super(tileX, tileY, stats.dmg, stats.atkCooldown, stats.range);
+        super(
+            TowerType.Knight,
+            tileX,
+            tileY,
+            stats.dmg,
+            stats.atkCooldown,
+            stats.range,
+            stats.cost,
+        );
 
         this.img.src = './knight.png';
     }

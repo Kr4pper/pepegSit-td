@@ -1,4 +1,5 @@
 import {Enemy} from '../enemies';
+import {TowerType} from './tower-type';
 
 export type TowerStats = {
     dmg?: number;
@@ -15,14 +16,19 @@ export abstract class Tower {
     private lastAttacked = Date.now();
 
     constructor(
+        public type: TowerType,
         public tileX: number,
         public tileY: number,
         private dmg: number,
         private atkCooldown: number,
         private range: number,
+        private cost: number,
     ) {}
 
-    attack(enemies: Enemy[], modifiers?: TowerStats) {
+    /**
+     * @returns true iff an attack was made
+     */
+    attack(enemies: Enemy[], modifiers?: TowerStats): boolean {
         const now = Date.now();
         const mayAttack = (now - this.lastAttacked * (modifiers?.atkCooldown || 1)) > this.atkCooldown * 1000;
         if (!mayAttack) return false;
@@ -39,5 +45,13 @@ export abstract class Tower {
         return true;
     }
 
+    value() {
+        return this.cost;
+    }
+
+    /**
+     * Delegates target selection to tower implementation
+     * @param enemies available targets in range of the tower
+     */
     abstract pickTargets(enemies: Enemy[]): Enemy[];
 }

@@ -1,7 +1,7 @@
 import {Biome} from './biome';
 import {Cardinal} from './cardinal';
 import {Enemy} from './enemies';
-import {Tower} from './towers';
+import {TOWER_DATA, Tower} from './towers';
 import {Wave} from './waves';
 
 export class TowerDefense {
@@ -63,6 +63,18 @@ export class TowerDefense {
 
     addTower(t: Tower) {
         this.towers.push(t);
+    }
+
+    sellTowerAt(x: number, y: number) {
+        const toSell = this.towers.find(t => t.tileX === x && t.tileY === y);
+        if (!toSell) {
+            return;
+        }
+
+        this.playerGold += TOWER_DATA[toSell.type].stats.cost * 0.7;
+        const tIdx = this.towers.findIndex(_t => _t === toSell);
+        this.towers.splice(tIdx, 1);
+        this.setBiome(Biome.Buildable, x, y);
     }
 
     biomeAt(x: number, y: number) {

@@ -1,6 +1,6 @@
 export enum Biome {
     Track,
     Buildable,
-    Occupied,
+    Tower,
     Blocked
 }
