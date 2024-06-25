@@ -112,8 +112,8 @@ const processTowers = () => {
     game.towers.forEach(t => {
         ctx.drawImage(t.img, (t.tileX + 0.1) * TILE_SIZE, (t.tileY + 0.1) * TILE_SIZE, 0.8 * TILE_SIZE, 0.8 * TILE_SIZE);
 
-        if (t.attack(game.enemies, {dmg: 1})) {
-            ctx.strokeStyle = 'white';
+        if (t.attack(game.enemies, {dmg: 0})) { // TODO implement multipliers
+            ctx.strokeStyle = 'white'; 
             ctx.strokeRect(t.tileX * TILE_SIZE, t.tileY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         }
     });
