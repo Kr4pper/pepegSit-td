@@ -42,6 +42,7 @@ const updateWave = (wave: number) => waveDisplay.innerHTML = wave.toString();
 const TOWER_KEY_BINDINGS: Record<TowerType, string> = {
     [TowerType.Sitter]: '1',
     [TowerType.Knight]: '2',
+    [TowerType.Sniper]: '3',
 };
 const TOWER_STAT_UI_MAP: Record<keyof TowerStats, string> = {
     dmg: 'Damage',
@@ -104,7 +105,7 @@ const printSelectedTowerStats = () => {
         <span style="margin-left: 20px;">Total: ${tower.getDmgDealtTotal()}</span><br>
         ${Object.entries(tower.getDmgDealtByType())
             .filter(([_, v]) => v > 0)
-            .reduce((acc, [k, v]) => acc + `<span style="margin-left: 20px;">vs ${k}: ${v}</span><br>`, '')}
+            .reduce((acc, [k, v]) => acc + `<span style="margin-left: 20px;">vs ${k}: ${Math.floor(v)}</span><br>`, '')}
     `;
 };
 
@@ -184,5 +185,5 @@ function gameLoop() {
 
 renderTowerBuildingData();
 
-game.sendWave();
+game.start();
 gameLoop();

@@ -17,16 +17,25 @@
 ✓ tower dmg stats
 ✓ tower cost scaling
 ✓ add more waves
-add losing
+✓ add losing
+✓ sniper tower
+✓ endless mode
+✓ infinite waves (weight based, random enemies)
+game restarting
+end/restart game after losing
+tower description
+tower upgrades
 more enemy types
 more tower types
 more waves
+better attack animations
 spawn clusters in waves
 kill feed
 better hp bars
 wave definition DSL + parser
 tower dmg types/tags
-game restarting
 map loader
 wave loader
 add more waves
+random map generation
+stuff on map to interact with

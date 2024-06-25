@@ -2,12 +2,12 @@ import {Enemy} from '../enemies';
 import {Tower, TowerBaseStats} from './tower';
 import {TowerType} from './tower-type';
 
-export class KnightTower extends Tower {
+export class SniperTower extends Tower {
     constructor(tileX: number, tileY: number) {
-        const stats = KnightTower.getBaseStats();
+        const stats = SniperTower.getBaseStats();
 
         super(
-            TowerType.Knight,
+            TowerType.Sniper,
             tileX,
             tileY,
             stats.dmg,
@@ -16,19 +16,19 @@ export class KnightTower extends Tower {
             stats.baseCost,
         );
 
-        this.img.src = './knight.png';
+        this.img.src = './sniper.png';
     }
 
     pickTargets(enemies: Enemy[]): Enemy[] {
-        return [enemies.sort((e1, e2) => e2.getProgress() - e1.getProgress())[0]]; // attack furthest enemy
+        return [enemies.sort((e1, e2) => e2.maxHp - e1.maxHp)[0]];
     }
 
     static getBaseStats(): TowerBaseStats {
         return {
-            dmg: 2,
-            atkCooldown: 1,
-            range: 2,
-            baseCost: 50,
+            dmg: 3,
+            atkCooldown: 3,
+            range: Number.POSITIVE_INFINITY,
+            baseCost: 100,
         };
     }
 }

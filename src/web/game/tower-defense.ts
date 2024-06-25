@@ -1,13 +1,33 @@
 import {Biome} from './biome';
 import {Cardinal} from './cardinal';
-import {ENEMY_SPAWN, Enemy} from './enemies';
+import {ENEMY_SPAWN, Enemy, EnemyType} from './enemies';
 import {TOWER_DATA, Tower, TowerType} from './towers';
 import {Wave} from './waves';
+
+const generateEndlessSpawnTable = () => {
+    const inverted = Object.entries(ENDLESS_SPAWN_WEIGHTS).sort(([_, w1], [__, w2]) => w1 - w2).map(([k, v]) => [k, 1 / v] as const);
+    const normalization = 1 / inverted.reduce((sum, [_, v]) => sum + v, 0);
+    const cutoffs = inverted.map(([k, v]) => [k, v * normalization] as const);
+    const spawnChunks: [EnemyType, number][] = [];
+    let sum = 0;
+    for (const [k, v] of cutoffs) {
+        sum += v;
+        spawnChunks.push([k as EnemyType, sum]);
+    }
+    return spawnChunks;
+};
 
 const TOWER_COST_SCALING = 1.2;
 const TOWER_SALE_GOLD_RECOVERY = 0.7;
 const BASE_GOLD_REWARD_PER_WAVE = 25;
 const SCALING_GOLD_REWARD_PER_WAVE = 5;
+const ENDLESS_HP_SCALING_PER_WAVE = 1.05;
+const ENDLESS_WEIGHT_SCALING_PER_WAVE = 1.15;
+const ENDLESS_SPAWN_WEIGHTS: Record<EnemyType, number> = {
+    [EnemyType.Wippa]: 1,
+    [EnemyType.Weirdge]: 3,
+};
+const ENDLESS_SPAWN_CHUNKS = generateEndlessSpawnTable();
 
 export class TowerDefense {
     public readonly enemies: Enemy[] = [];
@@ -15,7 +35,7 @@ export class TowerDefense {
     public readonly tiles: {x: number, y: number, biome: Biome;}[] = [];
     public readonly track: {x: number, y: number; to: Cardinal; from: Cardinal;}[] = [];
     public waveIdx = 0;
-    private towerCount: Record<TowerType, number> = {[TowerType.Sitter]: 0, [TowerType.Knight]: 0};
+    private towerCount: Record<TowerType, number> = {[TowerType.Sitter]: 0, [TowerType.Knight]: 0, [TowerType.Sniper]: 0};
 
     constructor(
         private map: Biome[][],
@@ -30,6 +50,10 @@ export class TowerDefense {
         }
 
         this.traceTrack();
+    }
+
+    start() {
+        this.sendPredeterminedWave();
     }
 
     private traceTrack() {
@@ -96,29 +120,54 @@ export class TowerDefense {
     }
 
     private checkRemainingEnemies() {
-        if (!this.enemies.length) {
-            if (this.waveIdx === this.waves.length - 1) {
-                alert('You have defeated the final wave, endless mode coming soon™');
+        if (this.enemies.length > 0) {
+            return;
+        }
+
+        this.playerGold += BASE_GOLD_REWARD_PER_WAVE + this.waveIdx * SCALING_GOLD_REWARD_PER_WAVE; // TODO: modify wave gold reward here
+        this.waveIdx++;
+
+        if (this.waveIdx < this.waves.length) {
+            this.sendPredeterminedWave();
+            return;
+        }
+
+        if (this.waveIdx === this.waves.length) {
+            alert('You have defeated the final wave and entered endless mode');
+        }
+
+        this.sendEndlessWave(Math.round(10 * Math.pow(ENDLESS_WEIGHT_SCALING_PER_WAVE, this.waveIdx)));
+    }
+
+    private sendEndlessWave(spawnWeightSum: number) {
+        const wave: Wave = [];
+        let rng: number;
+        while (true) {
+            rng = Math.random();
+            const next = ENDLESS_SPAWN_CHUNKS.find(([_, v]) => rng < v)![0];
+            spawnWeightSum -= ENDLESS_SPAWN_WEIGHTS[next];
+            if (spawnWeightSum < 0) {
+                const hpMultiplier = Math.pow(ENDLESS_HP_SCALING_PER_WAVE, this.waveIdx - this.waves.length);
+                this.spawnWave(wave, hpMultiplier);
                 return;
             }
-
-            this.playerGold += BASE_GOLD_REWARD_PER_WAVE + this.waveIdx * SCALING_GOLD_REWARD_PER_WAVE; // TODO: modify wave gold reward here
-            this.waveIdx++;
-            this.sendWave();
+            wave.push(next);
         }
     }
 
-    sendWave() {
-        const wave = this.waves[this.waveIdx];
+    private sendPredeterminedWave() {
+        this.spawnWave(this.waves[this.waveIdx]);
+    }
 
+    private spawnWave(wave: Wave, hpMultiplier = 1) {
         let enemyIdx = 0;
         const spawner = setInterval(() => {
-            this.addEnemy(ENEMY_SPAWN[wave[enemyIdx++]]());
+            this.addEnemy(ENEMY_SPAWN[wave[enemyIdx++]](hpMultiplier));
 
             if (enemyIdx > wave.length - 1) {
                 clearInterval(spawner);
             }
-        }, (5000 + wave.length * 50) / wave.length); // TODO: modify wave spawn delay here
+        }, (1000 + wave.length * 150) / wave.length); // TODO: modify wave spawn delay here
     }
 
     currentWave() {

@@ -1,5 +1,6 @@
 import {KnightTower} from './knight';
 import {SitterTower} from './sitter';
+import {SniperTower} from './sniper';
 import {Tower, TowerBaseStats} from './tower';
 import {TowerType} from './tower-type';
 
@@ -11,5 +12,9 @@ export const TOWER_DATA: Record<TowerType, {stats: TowerBaseStats, build: (x: nu
     [TowerType.Knight]: {
         stats: KnightTower.getBaseStats(),
         build: (x, y) => new KnightTower(x, y),
+    },
+    [TowerType.Sniper]: {
+        stats: SniperTower.getBaseStats(),
+        build: (x, y) => new SniperTower(x, y),
     }
 };
