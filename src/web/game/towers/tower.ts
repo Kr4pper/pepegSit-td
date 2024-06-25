@@ -8,7 +8,7 @@ export type TowerStats = {
 };
 
 export type TowerBaseStats = Required<TowerStats> & {
-    cost: number;
+    baseCost: number;
 };
 
 export abstract class Tower {

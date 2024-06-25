@@ -13,7 +13,7 @@ export class SitterTower extends Tower {
             stats.dmg,
             stats.atkCooldown,
             stats.range,
-            stats.cost,
+            stats.baseCost,
         );
         
         this.img.src = './pepegSit.jpg';
@@ -26,9 +26,9 @@ export class SitterTower extends Tower {
     static getBaseStats(): TowerBaseStats {
         return {
             dmg: 1,
-            atkCooldown: 1,
-            range: 4,
-            cost: 100,
+            atkCooldown: 5,
+            range: 3,
+            baseCost: 50,
         };
     }
 }

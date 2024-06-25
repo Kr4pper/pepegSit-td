@@ -26,7 +26,7 @@
 </div>
 
 <div style="display: flex">
-    <canvas id="td" style="border: 1px solid white; margin-right: 10px; margin-bottom: 10px; float: left;" width="500"
+    <canvas id="td" style="border: 1px solid white; margin-right: 10px; margin-bottom: 10px; float: left; max-height: 500px; min-height: 500px;" width="500"
         height="500">
         <p>This is where the game canvas should have loaded, make sure you don't have any browser extensions preventing
             it from loading</p>
@@ -34,7 +34,7 @@
     <div>
         <div id="tower-building" style="margin-bottom: 10px;">
             <span>TOWER BUILDING</span><br><br>
-            <!-- populated from js -->
+            <span id="tower-building-data"><!-- populated from js --></span>
         </div>
         <div id="tower-stats">
             <span>TOWER STATS</span><br><br>

@@ -1,15 +1,21 @@
 import {Biome} from './biome';
 import {Cardinal} from './cardinal';
-import {Enemy} from './enemies';
-import {TOWER_DATA, Tower} from './towers';
+import {ENEMY_SPAWN, Enemy} from './enemies';
+import {TOWER_DATA, Tower, TowerType} from './towers';
 import {Wave} from './waves';
+
+const TOWER_COST_SCALING = 1.2;
+const TOWER_SALE_GOLD_RECOVERY = 0.7;
+const BASE_GOLD_REWARD_PER_WAVE = 25;
+const SCALING_GOLD_REWARD_PER_WAVE = 5;
 
 export class TowerDefense {
     public readonly enemies: Enemy[] = [];
     public readonly towers: Tower[] = [];
     public readonly tiles: {x: number, y: number, biome: Biome;}[] = [];
     public readonly track: {x: number, y: number; to: Cardinal; from: Cardinal;}[] = [];
-    private waveIdx = 0;
+    public waveIdx = 0;
+    private towerCount: Record<TowerType, number> = {[TowerType.Sitter]: 0, [TowerType.Knight]: 0};
 
     constructor(
         private map: Biome[][],
@@ -80,6 +86,11 @@ export class TowerDefense {
 
     leakEnemy(e: Enemy) {
         this.playerHp -= e.dmg;
+
+        if (this.playerHp <= 0) {
+            alert('You lost + L + bozo');
+        }
+
         this.removeEnemy(e);
         this.checkRemainingEnemies();
     }
@@ -87,11 +98,11 @@ export class TowerDefense {
     private checkRemainingEnemies() {
         if (!this.enemies.length) {
             if (this.waveIdx === this.waves.length - 1) {
-                console.log('last wave has been defeated, endless mode coming soonTM');
+                alert('You have defeated the final wave, endless mode coming soon™');
                 return;
             }
 
-            this.playerGold += this.waves[this.waveIdx].goldReward;
+            this.playerGold += BASE_GOLD_REWARD_PER_WAVE + this.waveIdx * SCALING_GOLD_REWARD_PER_WAVE; // TODO: modify wave gold reward here
             this.waveIdx++;
             this.sendWave();
         }
@@ -102,19 +113,40 @@ export class TowerDefense {
 
         let enemyIdx = 0;
         const spawner = setInterval(() => {
-            this.addEnemy(wave.enemies[enemyIdx++]);
+            this.addEnemy(ENEMY_SPAWN[wave[enemyIdx++]]());
 
-            if (enemyIdx > wave.enemies.length - 1) {
+            if (enemyIdx > wave.length - 1) {
                 clearInterval(spawner);
             }
-        }, wave.spawnDelay * 1000);
+        }, (5000 + wave.length * 50) / wave.length); // TODO: modify wave spawn delay here
     }
 
     currentWave() {
         return this.waves[this.waveIdx];
     }
 
-    addTower(t: Tower) {
+    getTowerCost(t: TowerType) {
+        return Math.round(TOWER_DATA[t].stats.baseCost * Math.pow(TOWER_COST_SCALING, this.towerCount[t]));
+    }
+
+    /**
+     * @returns true iff a tower has been successfuly bought
+     */
+    buildTowerAt(t: TowerType, x: number, y: number): boolean {
+        if (!this.isBiome(Biome.Buildable, x, y)) return false;
+
+        const cost = this.getTowerCost(t);
+        if (cost > this.playerGold) return false;
+
+        this.playerGold -= cost;
+        this.addTower(TOWER_DATA[t].build(x, y));
+
+        return true;
+    }
+
+    private addTower(t: Tower) {
+        this.setBiome(Biome.Tower, t.tileX, t.tileY);
+        this.towerCount[t.type]++;
         this.towers.push(t);
     }
 
@@ -122,14 +154,24 @@ export class TowerDefense {
         return this.towers.find(t => t.tileX === x && t.tileY === y);
     }
 
-    sellTowerAt(x: number, y: number) {
+    /**
+     * @returns true iff a tower has been sold
+     */
+    sellTowerAt(x: number, y: number): boolean {
         const toSell = this.getTowerAt(x, y);
-        if (!toSell) return;
+        if (!toSell) return false;
 
-        this.playerGold += TOWER_DATA[toSell.type].stats.cost * 0.7;
-        const tIdx = this.towers.findIndex(_t => _t === toSell);
+        this.playerGold += TOWER_DATA[toSell.type].stats.baseCost * TOWER_SALE_GOLD_RECOVERY;
+        this.removeTower(toSell);
+
+        return true;
+    }
+
+    private removeTower(t: Tower) {
+        this.setBiome(Biome.Buildable, t.tileX, t.tileY);
+        this.towerCount[t.type]--;
+        const tIdx = this.towers.findIndex(_t => _t === t);
         this.towers.splice(tIdx, 1);
-        this.setBiome(Biome.Buildable, x, y);
     }
 
     biomeAt(x: number, y: number) {

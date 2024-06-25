@@ -1,4 +1,4 @@
-import {Biome, TowerDefense, convertToTiles, map1, defaultWaves, TowerBaseStats, TowerType, TOWER_DATA} from './game';
+import {Biome, TowerDefense, convertToTiles, map1, defaultWaves, TowerBaseStats, TowerType, TOWER_DATA, TowerStats} from './game';
 
 const TILE_SIZE = 50;
 const game = new TowerDefense(convertToTiles(map1), 100, 100, defaultWaves);
@@ -15,13 +15,14 @@ const keyUpListener = (event: KeyboardEvent) => keyPresses[event.key] = false;
 window.addEventListener('keyup', keyUpListener);
 
 let selectedTile: [number, number] = [-1, -1];
+const clearSelectedTile = () => selectedTile = [-1, -1];
 canvas.addEventListener('click', event => {
     const rect = canvas.getBoundingClientRect();
     const x = Math.floor((event.clientX - rect.left) / TILE_SIZE);
     const y = Math.floor((event.clientY - rect.top) / TILE_SIZE);
 
     if (selectedTile[0] === x && selectedTile[1] === y) {
-        selectedTile = [-1, -1]; // clear selection
+        clearSelectedTile();
         return;
     }
 
@@ -42,79 +43,75 @@ const TOWER_KEY_BINDINGS: Record<TowerType, string> = {
     [TowerType.Sitter]: '1',
     [TowerType.Knight]: '2',
 };
-const TOWER_STAT_UI_MAP: Record<keyof TowerBaseStats, string> = {
+const TOWER_STAT_UI_MAP: Record<keyof TowerStats, string> = {
     dmg: 'Damage',
     atkCooldown: 'Cooldown',
     range: 'Range',
-    cost: 'Cost',
 };
-const renderTowerBuildingInfo = () => {
-    const towersDiv = document.querySelector('div#tower-building')!;
-    Object.entries(TOWER_DATA).forEach(([type, {stats}]) => {
-        towersDiv.innerHTML += `
-        <div id="tower-${type}">
-            <div>${type} [${TOWER_KEY_BINDINGS[type as TowerType]}]:</div>
-            ${Object.entries(stats).reduce((acc, [k, v]) => acc +
-            `<div style="margin-left: 20px;">${TOWER_STAT_UI_MAP[k as keyof TowerBaseStats]}: <span id="stat-${k}">${v}</span></div>`,
-            '')}
-        </div>
-        <br>
-        `;
-    });
+const towerBuildingDataDisplay = document.querySelector('span#tower-building-data')!;
+const renderTowerBuildingData = () => {
+    towerBuildingDataDisplay.innerHTML = Object.entries(TOWER_DATA).reduce(
+        (acc, [type, {stats}]) =>
+            acc + `<div id="tower-${type}">
+            <div>${type} [Key: ${TOWER_KEY_BINDINGS[type as TowerType]}]</div>
+            <div style="margin-left: 20px;">Cost: <span id="stat-cost">${game.getTowerCost(type as TowerType)}</span></div>
+            ${Object.entries(stats).filter(([k]) => (k as keyof TowerBaseStats) !== 'baseCost').reduce((acc, [k, v]) => acc +
+                `<div style="margin-left: 20px;">${TOWER_STAT_UI_MAP[k as keyof TowerStats]}: <span id="stat-${k}">${v}</span></div>`,
+                '')}
+        </div><br>`,
+        '');
 };
 
 const checkForTowerBuilding = () => {
     const [x, y] = selectedTile;
     if (!game.isBiome(Biome.Buildable, x, y)) return;
 
-    const towerToBuild = Object.entries(TOWER_KEY_BINDINGS).find(([_, key]) => keyPresses[key]) as any;
+    const towerToBuild = Object.entries(TOWER_KEY_BINDINGS).find(([_, key]) => keyPresses[key]);
     if (!towerToBuild) return;
 
-    const {stats, build} = TOWER_DATA[towerToBuild[0] as TowerType];
-    if (game.playerGold < stats.cost) return;
+    const towerBuilt = game.buildTowerAt(towerToBuild[0] as TowerType, x, y);
+    if (!towerBuilt) return;
 
-    game.playerGold -= stats.cost;
+    renderTowerBuildingData();
     updateGold(game.playerGold);
-    game.addTower(build(x, y));
-    game.setBiome(Biome.Tower, x, y);
-    selectedTile = [-1, -1];
+    clearSelectedTile();
 };
 
 const checkForTowerSelling = () => {
     const [x, y] = selectedTile;
     if (!game.isBiome(Biome.Tower, x, y)) return;
-
     if (!keyPresses['x']) return;
 
-    game.sellTowerAt(x, y);
+    const towerSold = game.sellTowerAt(x, y);
+    if (!towerSold) return;
+
+    renderTowerBuildingData();
+    updateGold(game.playerGold);
+    clearSelectedTile();
 };
 
-const towerStatsDisplay = document.querySelector('span#selected-tower')!;
-const printTowerStats = () => {
+const selectedTowerStatsDisplay = document.querySelector('span#selected-tower')!;
+const printSelectedTowerStats = () => {
     const [x, y] = selectedTile;
-    if (!game.isBiome(Biome.Tower, x, y)) {
-        towerStatsDisplay.innerHTML = '';
+    const tower = game.getTowerAt(x, y);
+    if (!tower) {
+        selectedTowerStatsDisplay.innerHTML = `<span>&lt;no tower selected&gt;</span>`;
         return;
     }
 
-    const tower = game.getTowerAt(x, y);
-    if (!tower) return;
-
-    towerStatsDisplay.innerHTML = `
+    selectedTowerStatsDisplay.innerHTML = `
         <span>${tower.type} at (${x + 1} | ${y + 1}) damage stats:</span><br>
         <span style="margin-left: 20px;">Total: ${tower.getDmgDealtTotal()}</span><br>
         ${Object.entries(tower.getDmgDealtByType())
             .filter(([_, v]) => v > 0)
-            .reduce((acc, [k, v]) =>
-                acc + `<span style="margin-left: 20px;">vs ${k}: ${v}</span><br>`,
-                '')}
+            .reduce((acc, [k, v]) => acc + `<span style="margin-left: 20px;">vs ${k}: ${v}</span><br>`, '')}
     `;
 };
 
 const processKeyPresses = () => {
     checkForTowerBuilding();
     checkForTowerSelling();
-    printTowerStats();
+    printSelectedTowerStats();
 };
 
 const biomeStyles = {
@@ -149,7 +146,8 @@ const processTowers = () => {
 };
 
 const processEnemies = () => {
-    game.enemies.forEach(e => {
+    for (let i = game.enemies.length - 1; i >= 0; i--) { // TODO sort by progress instead?
+        const e = game.enemies[i];
         if (e.move()) {
             const [x, y] = e.getPosition();
             ctx.drawImage(
@@ -167,7 +165,7 @@ const processEnemies = () => {
                 5,
             );
         }
-    });
+    }
 };
 
 function gameLoop() {
@@ -178,13 +176,13 @@ function gameLoop() {
     processSelectedTile();
 
     updateGold(game.playerGold);
-    updateWave(game.currentWave().id);
+    updateWave(game.waveIdx + 1);
     updateHp(game.playerHp);
 
     window.requestAnimationFrame(gameLoop);
 }
 
-renderTowerBuildingInfo();
+renderTowerBuildingData();
 
 game.sendWave();
 gameLoop();

@@ -13,7 +13,7 @@ export class KnightTower extends Tower {
             stats.dmg,
             stats.atkCooldown,
             stats.range,
-            stats.cost,
+            stats.baseCost,
         );
 
         this.img.src = './knight.png';
@@ -27,10 +27,10 @@ export class KnightTower extends Tower {
 
     static getBaseStats(): TowerBaseStats {
         return {
-            dmg: 3,
-            atkCooldown: 0.75,
+            dmg: 2,
+            atkCooldown: 1,
             range: 2,
-            cost: 50,
+            baseCost: 50,
         };
     }
 }

@@ -12,7 +12,7 @@ const CARDINAL_TO_DELTA = {
 export class Enemy {
     public readonly img = new Image();
     private progress = 0;
-    private lastMoved: number;
+    private lastMoved = Date.now();
     private game: TowerDefense;
 
     constructor(
@@ -30,12 +30,12 @@ export class Enemy {
 
     move() {
         const now = Date.now();
-        const elapsed = this.lastMoved ? now - this.lastMoved : 0;
+        const elapsed = now - this.lastMoved;
 
         this.progress += elapsed / this.secondsPerTile / 1000;
         this.lastMoved = now;
 
-        if (!this.reachedEndOfTrack()) return true;
+        if (!this.leakAtEndOfTrack()) return true;
     }
 
     /**
@@ -46,10 +46,10 @@ export class Enemy {
 
         if (this.hp <= 0) this.game.killEnemy(this);
 
-        return incoming + (this.hp < 0 ? this.hp : 0);
+        return incoming + (this.hp < 0 ? this.hp : 0); // do not count overkill as dmg taken
     }
 
-    reachedEndOfTrack() {
+    private leakAtEndOfTrack() {
         const reachedEnd = this.progress >= this.game.track.length;
         if (reachedEnd) this.game.leakEnemy(this);
 

@@ -1,34 +1,28 @@
-import {Enemy, Weirdge, Wippa} from '../enemies';
+import {EnemyType} from '../enemies';
 
-export type Wave = {
-    id: number;
-    spawnDelay: number;
-    goldReward: number;
-    enemies: Enemy[];
-};
+export type Wave = EnemyType[];
+
+const createMany = (type: EnemyType, amount: number) => Array.from({length: amount}, () => type);
 
 export const defaultWaves: Wave[] = [
-    {
-        id: 1,
-        spawnDelay: 2,
-        goldReward: 25,
-        enemies: [
-            new Wippa(),
-            new Wippa(),
-            new Wippa(),
-        ]
-    },
-    {
-        id: 2,
-        spawnDelay: 1,
-        goldReward: 50,
-        enemies: [
-            new Weirdge(),
-            new Wippa(),
-            new Wippa(),
-            new Wippa(),
-            new Wippa(),
-            new Wippa(),
-        ]
-    }
+    createMany(EnemyType.Wippa, 1),
+    createMany(EnemyType.Wippa, 2),
+    createMany(EnemyType.Wippa, 3),
+    createMany(EnemyType.Wippa, 5),
+    createMany(EnemyType.Wippa, 8),
+    [
+        ...createMany(EnemyType.Weirdge, 1),
+        ...createMany(EnemyType.Wippa, 13),
+    ],
+    createMany(EnemyType.Wippa, 21),
+    createMany(EnemyType.Wippa, 34),
+    [
+        ...createMany(EnemyType.Wippa, 10),
+        ...createMany(EnemyType.Weirdge, 1),
+        ...createMany(EnemyType.Wippa, 10),
+        ...createMany(EnemyType.Weirdge, 2),
+        ...createMany(EnemyType.Wippa, 10),
+        ...createMany(EnemyType.Weirdge, 5),
+        ...createMany(EnemyType.Wippa, 20),
+    ]
 ];

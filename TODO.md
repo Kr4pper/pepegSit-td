@@ -15,7 +15,9 @@
 ✓ tower selling
 ✓ tower dmg display
 ✓ tower dmg stats
-tower cost scaling
+✓ tower cost scaling
+✓ add more waves
+add losing
 more enemy types
 more tower types
 more waves
@@ -24,3 +26,7 @@ kill feed
 better hp bars
 wave definition DSL + parser
 tower dmg types/tags
+game restarting
+map loader
+wave loader
+add more waves
