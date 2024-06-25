@@ -213,7 +213,7 @@ export class TowerDefense {
         const toSell = this.getTowerAt(x, y);
         if (!toSell) return false;
 
-        this.playerGold += toSell.getCost() * TOWER_SALE_GOLD_RECOVERY;
+        this.playerGold += Math.round(toSell.getCost() * TOWER_SALE_GOLD_RECOVERY);
         this.removeTower(toSell);
 
         return true;

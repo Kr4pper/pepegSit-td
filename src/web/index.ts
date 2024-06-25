@@ -1,7 +1,6 @@
 import {Biome, TowerDefense, convertToTiles, map1, defaultWaves, TowerBaseStats, TowerType, TOWER_DATA, TowerStats} from './game';
 
 const TILE_SIZE = 50;
-const game = new TowerDefense(convertToTiles(map1), 100, 100, defaultWaves);
 
 let canvas = document.querySelector('canvas#td')! as HTMLCanvasElement;
 let ctx = canvas.getContext('2d')!;
@@ -170,6 +169,14 @@ const printSelectedTowerStats = () => {
     `;
 };
 
+const restartGame = () => {
+    game = new TowerDefense(convertToTiles(map1), 100, 100, defaultWaves);
+    game.start();
+    gameLoop();
+};
+const restartButton = document.querySelector('button#restart')!;
+restartButton.addEventListener('click', restartGame);
+
 function gameLoop() {
     processTiles();
     processTowers();
@@ -181,9 +188,14 @@ function gameLoop() {
     updateWave(game.waveIdx + 1);
     updateHp(game.playerHp);
 
+    if (game.playerHp === 0) {
+        restartGame();
+    }
+
     window.requestAnimationFrame(gameLoop);
 }
 
+let game = new TowerDefense(convertToTiles(map1), 100, 100, defaultWaves);
 renderTowerBuildingData();
 
 game.start();
