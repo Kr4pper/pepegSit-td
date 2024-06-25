@@ -8,9 +8,11 @@
     "dev": "nodemon src/index.ts",
     "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "powershell ./deploy.ps1",
-    "cloud:build": "npx rimraf dist && tsc --p tsconfig.json && npx webpack --config webpack.prod.config.js && mkdir ./dist/assets && cp ./src/web/assets/*.* ./dist/assets/ && mv ./dist/bundle.js ./dist/assets/",
-    "cloud:start": "pm2 start dist/index.js --name td && pm2 list"
+    "release": "standard-version",
+    "deploy": "git describe --abbrev=0 > VERSION && powershell ./deploy.ps1 && del VERSION",
+    "cloud:build": "npx rimraf dist && tsc --p tsconfig.json && npx webpack --config webpack.prod.config.js && mkdir ./dist/assets && cp ./src/web/assets/*.* ./dist/assets/ && mv ./dist/bundle.js ./dist/assets/ && npm run 'cloud:version'",
+    "cloud:start": "pm2 start dist/index.js --name td && pm2 list",
+    "cloud:version": "sed -i \"s/%VERSION%/$(cat VERSION)/\" dist/assets/index.html"
   },
   "dependencies": {
     "express": "^4.19.2",
@@ -22,6 +24,7 @@
     "@types/express": "^4.17.21",
     "@types/node": "^20.14.8",
     "nodemon": "^3.1.4",
+    "standard-version": "^9.5.0",
     "ts-loader": "^9.5.1",
     "tsx": "^4.15.7",
     "typescript": "^5.5.2",
