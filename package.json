@@ -4,11 +4,13 @@
   "description": "basic tower defense game",
   "main": "src/index.js",
   "scripts": {
-    "buildOLD": "npx rimraf dist && tsc --p tsconfig.json && xcopy .\\src\\web\\assets\\*.* .\\dist\\web\\assets\\",
-    "build": "npx rimraf dist && tsc --p tsconfig.json && npx webpack && xcopy .\\src\\web\\assets\\*.* .\\dist\\assets\\ && move .\\dist\\bundle.js .\\dist\\assets\\",
+    "build": "npx rimraf dist && tsc --p tsconfig.json && npx webpack --config webpack.dev.config.js && xcopy .\\src\\web\\assets\\*.* .\\dist\\assets\\ && move .\\dist\\bundle.js .\\dist\\assets\\",
     "dev": "nodemon src/index.ts",
     "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "powershell ./deploy.ps1",
+    "cloud:build": "npx rimraf dist && tsc --p tsconfig.json && npx webpack --config webpack.prod.config.js && mkdir ./dist/assets && cp ./src/web/assets/*.* ./dist/assets/ && mv ./dist/bundle.js ./dist/assets/",
+    "cloud:start": "pm2 start dist/index.js --name td && pm2 list"
   },
   "dependencies": {
     "express": "^4.19.2",
