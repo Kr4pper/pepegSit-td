@@ -45,14 +45,17 @@ const checkForFastForward = (key: string) => {
 
     fastForward = !fastForward;
     gameSpeed = fastForward ? 3 : 1;
-    ffIconDisplay.style.visibility = gameSpeed ? 'visible' : 'hidden';
+    ffIconDisplay.style.visibility = fastForward ? 'visible' : 'hidden';
 };
 
 window.addEventListener('keydown', event => [
     checkForTowerBuilding,
     checkForTowerSelling,
     checkForFastForward,
-].map(listener => listener(event.key)));
+].map(listener => {
+    event.preventDefault();
+    listener(event.key);
+}));
 
 let selectedTile: [number, number] = [-1, -1];
 const clearSelectedTile = () => selectedTile = [-1, -1];

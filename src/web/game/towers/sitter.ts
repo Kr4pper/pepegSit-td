@@ -3,6 +3,10 @@ import {Tower, TowerBaseStats} from './tower';
 import {TowerType} from './tower-type';
 
 export class SitterTower extends Tower {
+    private activeImage = new Image();
+    private idleImage = new Image();
+    private currentlyIdle = false;
+
     constructor(tileX: number, tileY: number, cost: number) {
         const stats = SitterTower.getBaseStats();
 
@@ -16,7 +20,8 @@ export class SitterTower extends Tower {
             cost,
         );
 
-        this.img.src = './pepegSit.jpg';
+        this.activeImage.src = './pepegSit.jpg';
+        this.idleImage.src = './pepegSitInVent.png';
     }
 
     pickTargets(enemies: Enemy[]): Enemy[] {
@@ -24,12 +29,11 @@ export class SitterTower extends Tower {
     }
 
     setIdle(idle: boolean): void {
-        if (idle) {
-            this.img.src = './pepegSitInVent.png';
+        if (idle !== this.currentlyIdle) {
+            this.img = idle ? this.idleImage : this.activeImage;
         }
-        else {
-            this.img.src = './pepegSit.jpg';
-        }
+
+        this.currentlyIdle = idle;
     }
 
     static getBaseStats(): TowerBaseStats {

@@ -33,7 +33,7 @@ export abstract class Tower {
     attack(enemies: Enemy[], timeMultiplier: number, modifiers?: TowerStats): boolean {
         const inRange = enemies.filter(e => {
             const [x, y] = e.getPosition();
-            const distance = Math.sqrt(Math.pow(this.tileX + 0.5 - x, 2) + Math.pow(this.tileY + 0.5 - y, 2));
+            const distance = Math.sqrt(Math.pow(this.tileX - x, 2) + Math.pow(this.tileY - y, 2));
             return distance <= (this.range + (modifiers?.range || 0));
         });
         if (!inRange.length) {
