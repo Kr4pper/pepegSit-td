@@ -8,7 +8,7 @@ let TILE_SIZE: number;
 let game: TowerDefense;
 let map = map1;
 
-const checkForTowerBuilding = (key: string) => {
+const checkForTowerBuilding = ({key}: KeyboardEvent) => {
     const [x, y] = selectedTile;
     if (!game.isBiome(Biome.Buildable, x, y)) return;
 
@@ -23,7 +23,7 @@ const checkForTowerBuilding = (key: string) => {
     clearSelectedTile();
 };
 
-const checkForTowerSelling = (key: string) => {
+const checkForTowerSelling = ({key}: KeyboardEvent) => {
     if (key !== 'x') return;
 
     const [x, y] = selectedTile;
@@ -40,8 +40,9 @@ const checkForTowerSelling = (key: string) => {
 const ffIconDisplay = document.getElementById('ff-icon')!;
 let gameSpeed = 1;
 let fastForward = false;
-const checkForFastForward = (key: string) => {
-    if (key !== ' ') return;
+const checkForFastForward = (event: KeyboardEvent) => {
+    if (event.key !== ' ') return;
+    event.preventDefault();
 
     fastForward = !fastForward;
     gameSpeed = fastForward ? 3 : 1;
@@ -52,10 +53,7 @@ window.addEventListener('keydown', event => [
     checkForTowerBuilding,
     checkForTowerSelling,
     checkForFastForward,
-].map(listener => {
-    event.preventDefault();
-    listener(event.key);
-}));
+].map(listener => listener(event)));
 
 let selectedTile: [number, number] = [-1, -1];
 const clearSelectedTile = () => selectedTile = [-1, -1];
