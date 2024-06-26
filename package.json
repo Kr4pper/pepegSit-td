@@ -4,13 +4,13 @@
   "description": "basic tower defense game",
   "main": "src/index.js",
   "scripts": {
-    "build": "npx rimraf dist && tsc --p tsconfig.json && npx webpack --config webpack.dev.config.js && xcopy .\\src\\web\\assets\\*.* .\\dist\\assets\\ && move .\\dist\\bundle.js .\\dist\\assets\\",
+    "build": "npx rimraf dist && tsc --p tsconfig.json && npx webpack --config webpack.dev.config.js && xcopy .\\src\\web\\assets\\*.* .\\dist\\assets\\ && xcopy .\\changelog.txt .\\dist\\assets\\ && move .\\dist\\bundle.js .\\dist\\assets\\",
     "dev": "nodemon src/index.ts",
     "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "release": "standard-version",
     "deploy": "git describe --abbrev=0 > VERSION && powershell ./deploy.ps1 && del VERSION",
-    "cloud:build": "npx rimraf dist && tsc --p tsconfig.json && npx webpack --config webpack.prod.config.js && mkdir ./dist/assets && cp ./src/web/assets/*.* ./dist/assets/ && mv ./dist/bundle.js ./dist/assets/ && npm run 'cloud:version'",
+    "cloud:build": "npx rimraf dist && tsc --p tsconfig.json && npx webpack --config webpack.prod.config.js && mkdir ./dist/assets && cp ./src/web/assets/*.* ./dist/assets/ && cp changelog.txt ./dist/assets/ && mv ./dist/bundle.js ./dist/assets/ && npm run 'cloud:version'",
     "cloud:start": "pm2 start dist/index.js --name td && pm2 list",
     "cloud:version": "sed -i \"s/%VERSION%/$(cat VERSION)/\" dist/assets/index.html"
   },

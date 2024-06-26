@@ -1,0 +1,28 @@
+v0.2.5
+added peepoRun enemy
+added changelog display
+enemy balancing
+
+v0.2.4
+fixed keyboard event handling
+fixed idle animation bug
+
+v0.2.3
+towers can now instantly attack after being placed
+
+v0.2.2
+added a second map
+map can now be picked
+game can now be restarted
+
+v0.2.1
+added tower idle animation
+
+v0.2.0
+added sniper tower
+added endless mode
+
+v0.1.3
+added more waves
+tower balancing and cost scaling
+player can now die

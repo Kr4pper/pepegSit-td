@@ -22,6 +22,8 @@ export class SitterTower extends Tower {
 
         this.activeImage.src = './pepegSit.jpg';
         this.idleImage.src = './pepegSitInVent.png';
+
+        this.img = this.activeImage;
     }
 
     pickTargets(enemies: Enemy[]): Enemy[] {

@@ -1,13 +1,13 @@
 import {Biome} from './biome';
 import {Cardinal} from './cardinal';
-import {ENEMY_SPAWN, Enemy, EnemyType} from './enemies';
+import {ENEMY_SPAWNER, Enemy, EnemyType} from './enemies';
 import {TOWER_DATA, Tower, TowerType} from './towers';
 import {Wave} from './waves';
 
 const generateEndlessSpawnTable = () => {
-    const inverted = Object.entries(ENDLESS_SPAWN_WEIGHTS).sort(([_, w1], [__, w2]) => w1 - w2).map(([k, v]) => [k, 1 / v] as const);
-    const normalization = 1 / inverted.reduce((sum, [_, v]) => sum + v, 0);
-    const cutoffs = inverted.map(([k, v]) => [k, v * normalization] as const);
+    const sorted = Object.entries(ENDLESS_SPAWN_TICKETS).sort(([_, w1], [__, w2]) => w1 - w2);
+    const normalization = 1 / sorted.reduce((sum, [_, v]) => sum + v, 0);
+    const cutoffs = sorted.map(([k, v]) => [k, v * normalization] as const);
     const spawnChunks: [EnemyType, number][] = [];
     let sum = 0;
     for (const [k, v] of cutoffs) {
@@ -17,15 +17,21 @@ const generateEndlessSpawnTable = () => {
     return spawnChunks;
 };
 
-const TOWER_COST_SCALING = 1.2;
+const TOWER_COST_SCALING = 1.15;
 const TOWER_SALE_GOLD_RECOVERY = 0.7;
 const BASE_GOLD_REWARD_PER_WAVE = 25;
 const SCALING_GOLD_REWARD_PER_WAVE = 5;
 const ENDLESS_HP_SCALING_PER_WAVE = 1.05;
 const ENDLESS_WEIGHT_SCALING_PER_WAVE = 1.15;
+const ENDLESS_SPAWN_TICKETS: Record<EnemyType, number> = {
+    [EnemyType.Wippa]: 5,
+    [EnemyType.Weirdge]: 1,
+    [EnemyType.PeepoRun]: 2,
+};
 const ENDLESS_SPAWN_WEIGHTS: Record<EnemyType, number> = {
     [EnemyType.Wippa]: 1,
-    [EnemyType.Weirdge]: 3,
+    [EnemyType.Weirdge]: 5,
+    [EnemyType.PeepoRun]: 0.5,
 };
 const ENDLESS_SPAWN_CHUNKS = generateEndlessSpawnTable();
 
@@ -37,7 +43,7 @@ export class TowerDefense {
     public readonly tiles: {x: number, y: number, biome: Biome;}[] = [];
     public readonly track: {x: number, y: number; to: Cardinal; from: Cardinal;}[] = [];
     public waveIdx = 0;
-    private towerCount: Record<TowerType, number> = {[TowerType.Sitter]: 0, [TowerType.Knight]: 0, [TowerType.Sniper]: 0};
+    private towerCount: Record<TowerType, number> = Object.keys(TOWER_DATA).reduce((acc, k) => ({...acc, [k]: 0}), {}) as any;
     private activeEnemies = 0;
 
     constructor(
@@ -170,7 +176,7 @@ export class TowerDefense {
 
         let enemyIdx = 0;
         const spawner = setInterval(() => {
-            this.addEnemy(ENEMY_SPAWN[wave[enemyIdx++]](hpMultiplier));
+            this.addEnemy(ENEMY_SPAWNER[wave[enemyIdx++]](hpMultiplier));
 
             if (enemyIdx > wave.length - 1) {
                 clearInterval(spawner);

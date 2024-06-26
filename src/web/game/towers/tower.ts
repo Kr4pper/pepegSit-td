@@ -1,4 +1,4 @@
-import {Enemy, EnemyType} from '../enemies';
+import {ENEMY_SPAWNER, Enemy, EnemyType} from '../enemies';
 import {TowerType} from './tower-type';
 
 export type TowerStats = {
@@ -14,7 +14,7 @@ export type TowerBaseStats = Required<TowerStats> & {
 export abstract class Tower {
     public img = new Image();
     private dmgDealtTotal = 0;
-    private dmgDealtByType: Record<EnemyType, number> = {[EnemyType.Wippa]: 0, [EnemyType.Weirdge]: 0};
+    private dmgDealtByType: Record<EnemyType, number> = Object.keys(ENEMY_SPAWNER).reduce((acc, k) => ({...acc, [k]: 0}), {}) as  any;
     private lastAttacked = Number.NEGATIVE_INFINITY;
 
     constructor(
