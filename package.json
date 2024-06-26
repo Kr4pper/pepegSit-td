@@ -1,6 +1,6 @@
 {
   "name": "td",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "basic tower defense game",
   "main": "src/index.js",
   "scripts": {
