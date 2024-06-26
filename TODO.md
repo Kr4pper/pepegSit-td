@@ -23,8 +23,9 @@
 ✓ infinite waves (weight based, random enemies)
 ✓ fast forward mode
 ✓ tower idle animation
-game restarting
-end/restart game after losing
+✓ game restarting
+✓ end/restart game after losing
+✓ map picker
 tower description
 tower upgrades
 more enemy types

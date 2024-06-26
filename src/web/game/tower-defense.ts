@@ -30,6 +30,8 @@ const ENDLESS_SPAWN_WEIGHTS: Record<EnemyType, number> = {
 const ENDLESS_SPAWN_CHUNKS = generateEndlessSpawnTable();
 
 export class TowerDefense {
+    public readonly dimX: number;
+    public readonly dimY: number;
     public readonly enemies: Enemy[] = [];
     public readonly towers: Tower[] = [];
     public readonly tiles: {x: number, y: number, biome: Biome;}[] = [];
@@ -44,8 +46,11 @@ export class TowerDefense {
         public playerGold: number,
         private waves: Wave[],
     ) {
-        for (let x = 0; x < map[0].length; x++) {
-            for (let y = 0; y < map.length; y++) {
+        this.dimX = map[0].length;
+        this.dimY = map.length;
+
+        for (let x = 0; x < this.dimX; x++) {
+            for (let y = 0; y < this.dimY; y++) {
                 this.tiles.push({x, y, biome: map[y][x]});
             }
         }
@@ -227,7 +232,7 @@ export class TowerDefense {
     }
 
     biomeAt(x: number, y: number) {
-        return this.map.at(y)?.at(x);
+        return this.map[y]?.[x];
     }
 
     isBiome(biome: Biome, x: number, y: number) {

@@ -1,9 +1,12 @@
-import {Biome, TowerDefense, convertToTiles, map1, defaultWaves, TowerBaseStats, TowerType, TOWER_DATA, TowerStats} from './game';
+import {Biome, TowerDefense, convertToTiles, map1, defaultWaves, TowerBaseStats, TowerType, TOWER_DATA, TowerStats, map2} from './game';
 
-const TILE_SIZE = 50;
+const MAPS = {map1, map2};
 
 let canvas = document.querySelector('canvas#td')! as HTMLCanvasElement;
 let ctx = canvas.getContext('2d')!;
+let TILE_SIZE: number;
+let game: TowerDefense;
+let map = map1;
 
 const checkForTowerBuilding = (key: string) => {
     const [x, y] = selectedTile;
@@ -170,12 +173,25 @@ const printSelectedTowerStats = () => {
 };
 
 const restartGame = () => {
-    game = new TowerDefense(convertToTiles(map1), 100, 100, defaultWaves);
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    game = new TowerDefense(convertToTiles(map), 100, 100, defaultWaves);
+    TILE_SIZE = Math.min(canvas.width, canvas.height) / Math.max(game.dimX, game.dimY);
     game.start();
     gameLoop();
 };
 const restartButton = document.querySelector('button#restart')!;
 restartButton.addEventListener('click', restartGame);
+
+const mapSelection = document.querySelector('select#map-selection')! as HTMLSelectElement;
+mapSelection.innerHTML = Object.keys(MAPS).reduce((acc, k) => acc + `<option value="${k}">${k === 'map2' ? 'try aoe abusing this one, radvo :smirk:' : k}</option>`, '');
+const loadMap = () => {
+    map = MAPS[mapSelection.value as keyof typeof MAPS];
+    restartGame();
+};
+const pickMapButton = document.querySelector('button#load-map')!;
+pickMapButton.addEventListener('click', loadMap);
 
 function gameLoop() {
     processTiles();
@@ -195,8 +211,7 @@ function gameLoop() {
     window.requestAnimationFrame(gameLoop);
 }
 
-let game = new TowerDefense(convertToTiles(map1), 100, 100, defaultWaves);
+restartGame();
 renderTowerBuildingData();
 
-game.start();
 gameLoop();

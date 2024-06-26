@@ -28,8 +28,8 @@
 
 <div style="display: flex">
     <canvas id="td"
-        style="border: 1px solid white; margin-right: 10px; margin-bottom: 10px; float: left; max-height: 500px; min-height: 500px;"
-        width="500" height="500">
+        style="border: 1px solid white; margin-right: 10px; margin-bottom: 10px; float: left; max-height: 600px; min-height: 600px;"
+        width="600" height="600">
         <p>This is where the game canvas should have loaded, make sure you don't have any browser extensions preventing
             it from loading</p>
     </canvas>
@@ -46,6 +46,15 @@
 </div>
 
 <div style="float: left;">
+    <div id="menu">
+        <h3>Menu</h3>
+        <button id="restart" style="margin-right: 10px;">Restart Game</button>
+        <select id="map-selection">
+            <!-- populated from js -->
+        </select>
+        <button id="load-map">Load Map</button>
+    </div>
+
     <div id="tutorial">
         <h3>How To Play</h3>
         <div>
@@ -58,11 +67,6 @@
             <span>Select a tower and press 'X' to sell it for 70% of it's cost.</span><br>
             <span>Use SPACE to toggle fast forward mode, making the game run at 3x speed.</span><br>
         </div>
-    </div>
-
-    <div id="menu">
-        <h3>Menu</h3>
-        <button id="restart">Restart Game</button>
     </div>
 </div>
 
