@@ -38,12 +38,14 @@ const checkForTowerSelling = (key: string) => {
 };
 
 const ffIconDisplay = document.getElementById('ff-icon')!;
+let gameSpeed = 1;
 let fastForward = false;
 const checkForFastForward = (key: string) => {
     if (key !== ' ') return;
 
     fastForward = !fastForward;
-    ffIconDisplay.style.visibility = fastForward ? 'visible' : 'hidden';
+    gameSpeed = fastForward ? 3 : 1;
+    ffIconDisplay.style.visibility = gameSpeed ? 'visible' : 'hidden';
 };
 
 window.addEventListener('keydown', event => [
@@ -116,34 +118,60 @@ const processTiles = () => {
 };
 const processTowers = () => {
     game.towers.forEach(t => {
-        ctx.drawImage(t.img, (t.tileX + 0.1) * TILE_SIZE, (t.tileY + 0.1) * TILE_SIZE, 0.8 * TILE_SIZE, 0.8 * TILE_SIZE);
-
-        if (t.attack(game.enemies, fastForward ? 3 : 1, {dmg: 0})) { // TODO implement multipliers
+        if (t.attack(game.enemies, gameSpeed, {dmg: 0})) { // TODO implement multipliers
             ctx.strokeStyle = 'white';
             ctx.strokeRect(t.tileX * TILE_SIZE, t.tileY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         }
+
+        ctx.drawImage(
+            t.img,
+            (t.tileX + 0.1) * TILE_SIZE,
+            (t.tileY + 0.1) * TILE_SIZE,
+            0.8 * TILE_SIZE,
+            0.8 * TILE_SIZE,
+        );
     });
 };
 
 const processEnemies = () => {
     for (let i = game.enemies.length - 1; i >= 0; i--) { // TODO sort by progress instead?
         const e = game.enemies[i];
-        if (e.move(fastForward ? 3 : 1)) {
+        if (e.move(gameSpeed)) {
             const [x, y] = e.getPosition();
             ctx.drawImage(
                 e.img,
-                x * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.width),
-                y * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.height),
+                (x + 0.1) * TILE_SIZE,
+                (y + 0.1) * TILE_SIZE,
+                0.8 * TILE_SIZE,
+                0.8 * TILE_SIZE,
             );
 
             // hp bar
             ctx.fillStyle = 'red';
+            ctx.fillRect(
+                (x + 0.1) * TILE_SIZE,
+                (y + 0.1) * TILE_SIZE,
+                e.hp / e.maxHp * 0.7 * TILE_SIZE,
+                5,
+            );
+
+            /*
+            NORMALIZED SMALL
+            ctx.drawImage(
+                e.img,
+                x * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.width),
+                y * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.height),
+                0.8 * TILE_SIZE,
+                0.8 * TILE_SIZE,
+            );
+
             ctx.fillRect(
                 x * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.width),
                 y * TILE_SIZE + 0.5 * (TILE_SIZE - e.img.height),
                 e.hp / e.maxHp * 0.8 * TILE_SIZE,
                 5,
             );
+            */
         }
     }
 };

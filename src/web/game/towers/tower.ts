@@ -15,7 +15,7 @@ export abstract class Tower {
     public img = new Image();
     private dmgDealtTotal = 0;
     private dmgDealtByType: Record<EnemyType, number> = {[EnemyType.Wippa]: 0, [EnemyType.Weirdge]: 0};
-    private lastAttacked = Date.now();
+    private lastAttacked = Number.NEGATIVE_INFINITY;
 
     constructor(
         public type: TowerType,
@@ -40,6 +40,7 @@ export abstract class Tower {
             this.setIdle(true);
             return false;
         }
+        this.setIdle(false);
 
         const now = Date.now();
         const elapsed = (now - this.lastAttacked) * timeMultiplier;
@@ -51,7 +52,6 @@ export abstract class Tower {
             this.dmgDealtTotal += dmg;
             this.dmgDealtByType[e.type] += dmg;
         }
-        this.setIdle(false);
         this.lastAttacked = now;
         return true;
     }
