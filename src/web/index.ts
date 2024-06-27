@@ -12,7 +12,7 @@ const checkForTowerBuilding = ({key}: KeyboardEvent) => {
     const [x, y] = selectedTile;
     if (!game.isBiome(Biome.Buildable, x, y)) return;
 
-    const towerToBuild = Object.entries(TOWER_KEY_BINDINGS).find(([_, _key]) => _key === key);
+    const towerToBuild = Object.entries(TOWER_DISPLAY).find(([_, [_key]]) => _key === key);
     if (!towerToBuild) return;
 
     const towerBuilt = game.buildTowerAt(towerToBuild[0] as TowerType, x, y);
@@ -80,10 +80,11 @@ const updateHp = (hp: number) => hpDisplay.innerHTML = hp.toString();
 const waveDisplay = statsDisplay.querySelector('span#wave')!;
 const updateWave = (wave: number) => waveDisplay.innerHTML = wave.toString();
 
-const TOWER_KEY_BINDINGS: Record<TowerType, string> = {
-    [TowerType.Sitter]: '1',
-    [TowerType.Knight]: '2',
-    [TowerType.Sniper]: '3',
+const TOWER_DISPLAY: Record<TowerType, [key: string, description: string]> = {
+    [TowerType.Sitter]: ['1', '3 targets'],
+    [TowerType.Knight]: ['2', '1 target'],
+    [TowerType.Sniper]: ['3', '1 elite target'],
+    [TowerType.Ice]: ['4', 'aoe slow'],
 };
 const TOWER_STAT_UI_MAP: Record<keyof TowerStats, string> = {
     dmg: 'Damage',
@@ -95,11 +96,13 @@ const renderTowerBuildingData = () => {
     towerBuildingDataDisplay.innerHTML = Object.entries(TOWER_DATA).reduce(
         (acc, [type, {stats}]) =>
             acc + `<div id="tower-${type}">
-            <div>${type} [Key: ${TOWER_KEY_BINDINGS[type as TowerType]}]</div>
+            <div>[${TOWER_DISPLAY[type as TowerType][0]}] ${type}, ${TOWER_DISPLAY[type as TowerType][1]}</div>
             <div style="margin-left: 20px;">Cost: <span id="stat-cost">${game.getTowerCost(type as TowerType)}</span></div>
-            ${Object.entries(stats).filter(([k]) => (k as keyof TowerBaseStats) !== 'baseCost').reduce((acc, [k, v]) => acc +
-                `<div style="margin-left: 20px;">${TOWER_STAT_UI_MAP[k as keyof TowerStats]}: <span id="stat-${k}">${v}</span></div>`,
-                '')}
+            ${Object.entries(stats)
+                .filter(([k]) => (k as keyof TowerBaseStats) !== 'baseCost')
+                .reduce((acc, [k, v]) => acc +
+                    `<div style="margin-left: 20px;">${TOWER_STAT_UI_MAP[k as keyof TowerStats]}: <span id="stat-${k}">${v}</span></div>`,
+                    '')}
         </div><br>`,
         '');
 };

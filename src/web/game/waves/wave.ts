@@ -17,7 +17,7 @@ export const defaultWaves: Wave[] = [
         ...createMany(EnemyType.Weirdge, 1),
         ...createMany(EnemyType.Wippa, 13),
     ],
-    createMany(EnemyType.PeepoRun, 8),
+    createMany(EnemyType.PeepoRun, 5),
     createMany(EnemyType.Wippa, 21),
     createMany(EnemyType.Wippa, 34),
     [

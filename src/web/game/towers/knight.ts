@@ -1,5 +1,5 @@
 import {Enemy} from '../enemies';
-import {Tower, TowerBaseStats} from './tower';
+import {Tower, TowerAttackEffects, TowerBaseStats} from './tower';
 import {TowerType} from './tower-type';
 
 export class KnightTower extends Tower {
@@ -20,7 +20,11 @@ export class KnightTower extends Tower {
     }
 
     pickTargets(enemies: Enemy[]): Enemy[] {
-        return [enemies.sort((e1, e2) => e2.getProgress() - e1.getProgress())[0]]; // attack furthest enemy
+        return [enemies.sort((e1, e2) => e2.getProgress() - e1.getProgress())[0]];
+    }
+
+    attackEffects(): TowerAttackEffects {
+        return {};
     }
 
     setIdle(idle: boolean): void {}
@@ -29,7 +33,7 @@ export class KnightTower extends Tower {
         return {
             dmg: 2,
             atkCooldown: 1,
-            range: 2,
+            range: 1.5,
             baseCost: 50,
         };
     }

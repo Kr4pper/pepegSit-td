@@ -14,6 +14,8 @@ export class Enemy {
     private progress = 0;
     private lastMoved = Date.now();
     private game: TowerDefense;
+    private slowPercent = 0;
+    private slowRemainingSeconds = 0;
 
     constructor(
         public type: EnemyType,
@@ -32,7 +34,12 @@ export class Enemy {
         const now = Date.now();
         const elapsed = (now - this.lastMoved) * timeMultiplier;
 
-        this.progress += elapsed / this.secondsPerTile / 1000;
+        this.slowRemainingSeconds -= elapsed;
+        if (this.slowPercent && this.slowRemainingSeconds <= 0) {
+            this.slowPercent = 0;
+        }
+
+        this.progress += (elapsed / this.secondsPerTile / 1000) * (1 - this.slowPercent);
         this.lastMoved = now;
 
         if (!this.leakAtEndOfTrack()) return true;
@@ -47,6 +54,15 @@ export class Enemy {
         if (this.hp <= 0) this.game.killEnemy(this);
 
         return incoming + (this.hp < 0 ? this.hp : 0); // do not count overkill as dmg taken
+    }
+
+    applySlow(slowPercent: number, durationSec: number) {
+        if (this.slowPercent > slowPercent) {
+            return; // do not overwrite a stronger slow effect
+        }
+
+        this.slowPercent = slowPercent;
+        this.slowRemainingSeconds = durationSec * 1000;
     }
 
     private leakAtEndOfTrack() {

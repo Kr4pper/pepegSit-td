@@ -17,7 +17,7 @@ const generateEndlessSpawnTable = () => {
     return spawnChunks;
 };
 
-const TOWER_COST_SCALING = 1.15;
+const TOWER_COST_SCALING = 1.2;
 const TOWER_SALE_GOLD_RECOVERY = 0.7;
 const BASE_GOLD_REWARD_PER_WAVE = 25;
 const SCALING_GOLD_REWARD_PER_WAVE = 5;

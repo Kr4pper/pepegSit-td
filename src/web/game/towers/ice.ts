@@ -2,12 +2,12 @@ import {Enemy} from '../enemies';
 import {Tower, TowerAttackEffects, TowerBaseStats} from './tower';
 import {TowerType} from './tower-type';
 
-export class SniperTower extends Tower {
+export class IceTower extends Tower {
     constructor(tileX: number, tileY: number, cost: number) {
-        const stats = SniperTower.getBaseStats();
+        const stats = IceTower.getBaseStats();
 
         super(
-            TowerType.Sniper,
+            TowerType.Ice,
             tileX,
             tileY,
             stats.dmg,
@@ -16,25 +16,30 @@ export class SniperTower extends Tower {
             cost,
         );
 
-        this.img.src = './sniper.png';
+        this.img.src = './ice.png';
     }
 
     pickTargets(enemies: Enemy[]): Enemy[] {
-        return [enemies.sort((e1, e2) => e2.maxHp - e1.maxHp)[0]];
-    }
-
-    attackEffects(): TowerAttackEffects {
-        return {};
+        return enemies;
     }
 
     setIdle(idle: boolean): void {}
 
+    attackEffects(): TowerAttackEffects {
+        return {
+            slow: {
+                effect: 0.3,
+                durationSeconds: 1,
+            }
+        };
+    }
+
     static getBaseStats(): TowerBaseStats {
         return {
-            dmg: 3,
-            atkCooldown: 3,
-            range: Number.POSITIVE_INFINITY,
-            baseCost: 100,
+            dmg: 0,
+            atkCooldown: 0.5,
+            range: 2,
+            baseCost: 50,
         };
     }
 }

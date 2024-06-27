@@ -26,7 +26,9 @@
 ✓ game restarting
 ✓ end/restart game after losing
 ✓ map picker
-tower description
+✓ tower attack special effects
+✓ tower description
+✓ ice tower
 tower upgrades
 more enemy types
 more tower types

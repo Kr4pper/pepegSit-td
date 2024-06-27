@@ -11,10 +11,19 @@ export type TowerBaseStats = Required<TowerStats> & {
     baseCost: number;
 };
 
+type SlowEffect = {
+    effect: number;
+    durationSeconds: number;
+};
+
+export type TowerAttackEffects = {
+    slow?: SlowEffect;
+};
+
 export abstract class Tower {
     public img = new Image();
     private dmgDealtTotal = 0;
-    private dmgDealtByType: Record<EnemyType, number> = Object.keys(ENEMY_SPAWNER).reduce((acc, k) => ({...acc, [k]: 0}), {}) as  any;
+    private dmgDealtByType: Record<EnemyType, number> = Object.keys(ENEMY_SPAWNER).reduce((acc, k) => ({...acc, [k]: 0}), {}) as any;
     private lastAttacked = Number.NEGATIVE_INFINITY;
 
     constructor(
@@ -47,10 +56,15 @@ export abstract class Tower {
         const mayAttack = elapsed * (modifiers?.atkCooldown || 1) > this.atkCooldown * 1000;
         if (!mayAttack) return false;
 
+        const attackEffects = this.attackEffects();
         for (const e of this.pickTargets(inRange)) {
             const dmg = e.takeDamage(this.dmg + (modifiers?.dmg || 0));
-            this.dmgDealtTotal += dmg;
             this.dmgDealtByType[e.type] += dmg;
+            this.dmgDealtTotal += dmg;
+
+            if (attackEffects.slow) {
+                e.applySlow(attackEffects.slow.effect, attackEffects.slow.durationSeconds);
+            }
         }
         this.lastAttacked = now;
         return true;
@@ -61,7 +75,7 @@ export abstract class Tower {
     }
 
     getDmgDealtTotal() {
-        return this.dmgDealtTotal;
+        return Math.round(this.dmgDealtTotal);
     }
 
     getDmgDealtByType() {
@@ -73,6 +87,8 @@ export abstract class Tower {
      * @param enemies available targets in range of the tower
      */
     abstract pickTargets(enemies: Enemy[]): Enemy[];
+
+    abstract attackEffects(): TowerAttackEffects;
 
     /**
      * Notifies the tower whether or not there are any enemies in range of it

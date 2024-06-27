@@ -1,3 +1,7 @@
+v0.2.6
+ice tower
+tower descriptions
+
 v0.2.5
 added peepoRun enemy
 added changelog display

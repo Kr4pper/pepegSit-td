@@ -1,5 +1,5 @@
 import {Enemy} from '../enemies';
-import {Tower, TowerBaseStats} from './tower';
+import {Tower, TowerAttackEffects, TowerBaseStats} from './tower';
 import {TowerType} from './tower-type';
 
 export class SitterTower extends Tower {
@@ -27,7 +27,12 @@ export class SitterTower extends Tower {
     }
 
     pickTargets(enemies: Enemy[]): Enemy[] {
-        return enemies;
+        const mostProgressed = enemies.sort((e1, e2) => e2.getProgress() - e1.getProgress());
+        return [mostProgressed[0], mostProgressed[1], mostProgressed[2]].filter(v => v);
+    }
+
+    attackEffects(): TowerAttackEffects {
+        return {};
     }
 
     setIdle(idle: boolean): void {
@@ -41,7 +46,7 @@ export class SitterTower extends Tower {
     static getBaseStats(): TowerBaseStats {
         return {
             dmg: 1,
-            atkCooldown: 5,
+            atkCooldown: 2,
             range: 3,
             baseCost: 50,
         };
