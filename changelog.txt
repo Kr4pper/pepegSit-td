@@ -1,3 +1,7 @@
+v0.2.7
+tower stats display cleanup
+tower range indicator
+
 v0.2.6
 ice tower
 tower descriptions

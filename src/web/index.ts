@@ -1,4 +1,4 @@
-import {Biome, TowerDefense, convertToTiles, map1, defaultWaves, TowerBaseStats, TowerType, TOWER_DATA, TowerStats, map2} from './game';
+import {Biome, TowerDefense, convertToTiles, map1, defaultWaves, TowerType, TOWER_DATA, map2, TowerData} from './game';
 
 const MAPS = {map1, map2};
 
@@ -86,25 +86,26 @@ const TOWER_DISPLAY: Record<TowerType, [key: string, description: string]> = {
     [TowerType.Sniper]: ['3', '1 elite target'],
     [TowerType.Ice]: ['4', 'aoe slow'],
 };
-const TOWER_STAT_UI_MAP: Record<keyof TowerStats, string> = {
-    dmg: 'Damage',
-    atkCooldown: 'Cooldown',
-    range: 'Range',
+const TOWER_STAT_UI_MAP: Partial<Record<keyof TowerData, string>> = {
+    dmg: '<img src="sword.png" width="20px" height="20px" style="position: relative; top: 3px; padding-left: 5px;">',
+    attackCooldown: '<img src="clock.png" width="20px" height="20px" style="position: relative; top: 3px; padding-left: 5px;">',
+    range: '<img src="bow.png" width="20px" height="20px" style="position: relative; top: 3px; padding-left: 5px;">',
 };
 const towerBuildingDataDisplay = document.querySelector('span#tower-building-data')!;
 const renderTowerBuildingData = () => {
-    towerBuildingDataDisplay.innerHTML = Object.entries(TOWER_DATA).reduce(
-        (acc, [type, {stats}]) =>
-            acc + `<div id="tower-${type}">
-            <div>[${TOWER_DISPLAY[type as TowerType][0]}] ${type}, ${TOWER_DISPLAY[type as TowerType][1]}</div>
-            <div style="margin-left: 20px;">Cost: <span id="stat-cost">${game.getTowerCost(type as TowerType)}</span></div>
-            ${Object.entries(stats)
-                .filter(([k]) => (k as keyof TowerBaseStats) !== 'baseCost')
-                .reduce((acc, [k, v]) => acc +
-                    `<div style="margin-left: 20px;">${TOWER_STAT_UI_MAP[k as keyof TowerStats]}: <span id="stat-${k}">${v}</span></div>`,
-                    '')}
-        </div><br>`,
-        '');
+    towerBuildingDataDisplay.innerHTML = Object.entries(TOWER_DATA).map(
+        ([type, {dmg, attackCooldown, range}]) => `
+            <div id="tower-${type}">
+                <div>
+                    [${TOWER_DISPLAY[type as TowerType][0]}] ${type}, ${TOWER_DISPLAY[type as TowerType][1]}, 
+                    <span id="stat-cost"><img src="coin.png" width="20px" height="20px" style="position: relative; top: 3px;">${game.getTowerCost(type as TowerType)}</span>
+                </div>
+                <div style="margin-left: 20px;">
+                    ${Object.keys({dmg, attackCooldown, range}).map(k => `<span id="stat-${k}">${TOWER_STAT_UI_MAP[k as keyof TowerData]}${TOWER_DATA[type as TowerType][k as keyof TowerData]}</span>`).join('')}
+                </div>
+            </div>
+        `
+    ).join('');
 };
 
 const biomeStyles = {
@@ -128,7 +129,7 @@ const processTowers = () => {
         }
 
         ctx.drawImage(
-            t.img,
+            t.image,
             (t.tileX + 0.1) * TILE_SIZE,
             (t.tileY + 0.1) * TILE_SIZE,
             0.8 * TILE_SIZE,
@@ -202,6 +203,14 @@ const printSelectedTowerStats = () => {
             .filter(([_, v]) => v > 0)
             .reduce((acc, [k, v]) => acc + `<span style="margin-left: 20px;">vs ${k}: ${Math.floor(v)}</span><br>`, '')}
     `;
+
+    ctx.beginPath();
+    ctx.arc((x + 0.5) * TILE_SIZE, (y + 0.5) * TILE_SIZE, tower.getRange() * TILE_SIZE, 0, 2 * Math.PI, false);
+    ctx.closePath();
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'blue';
+    ctx.stroke();
 };
 
 const restartGame = () => {

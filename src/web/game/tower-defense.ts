@@ -31,7 +31,7 @@ const ENDLESS_SPAWN_TICKETS: Record<EnemyType, number> = {
 const ENDLESS_SPAWN_WEIGHTS: Record<EnemyType, number> = {
     [EnemyType.Wippa]: 1,
     [EnemyType.Weirdge]: 5,
-    [EnemyType.PeepoRun]: 0.5,
+    [EnemyType.PeepoRun]: 2,
 };
 const ENDLESS_SPAWN_CHUNKS = generateEndlessSpawnTable();
 
@@ -189,7 +189,7 @@ export class TowerDefense {
     }
 
     getTowerCost(t: TowerType) {
-        return Math.round(TOWER_DATA[t].stats.baseCost * Math.pow(TOWER_COST_SCALING, this.towerCount[t]));
+        return Math.round(TOWER_DATA[t].baseCost * Math.pow(TOWER_COST_SCALING, this.towerCount[t]));
     }
 
     /**
@@ -202,7 +202,7 @@ export class TowerDefense {
         if (cost > this.playerGold) return false;
 
         this.playerGold -= cost;
-        this.addTower(TOWER_DATA[t].build(x, y, cost));
+        this.addTower(new Tower(t, x, y, cost));
 
         return true;
     }
