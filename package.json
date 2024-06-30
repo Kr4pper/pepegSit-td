@@ -12,7 +12,7 @@
     "release": "standard-version",
     "deploy": "git describe --abbrev=0 > VERSION && powershell ./deploy.ps1 && del VERSION",
     "cloud:build": "npx rimraf dist && tsc --p tsconfig.json && npx webpack --config webpack.prod.config.js && npm run 'cloud:build:copy' && npm run 'cloud:version'",
-    "cloud:build:copy": "mkdir ./dist/assets && cp ./src/web/assets/*.* ./dist/assets/ && cp ./src/web/td.html ./dist/assets && cp changelog.txt ./dist/assets/ && mv ./dist/bundle.js ./dist/assets/ && npm run 'cloud:version'",
+    "cloud:build:copy": "mkdir ./dist/assets && cp ./src/web/assets/*.* ./dist/assets/ && cp ./src/web/td.html ./dist/assets && cp changelog.txt ./dist/assets/ && mv ./dist/bundle.js ./dist/assets/",
     "cloud:version": "sed -i \"s/%VERSION%/$(cat VERSION)/\" dist/assets/td.html",
     "cloud:start": "pm2 start dist/index.js --name td && pm2 list"
   },
