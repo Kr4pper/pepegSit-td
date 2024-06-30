@@ -1,3 +1,6 @@
+v0.3.0
+tower upgrades
+
 v0.2.7
 tower stats display cleanup
 tower range indicator

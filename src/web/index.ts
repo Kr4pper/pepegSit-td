@@ -1,4 +1,4 @@
-import {Biome, TowerDefense, convertToTiles, map1, defaultWaves, TowerType, TOWER_DATA, map2, TowerData} from './game';
+import {Biome, TowerDefense, convertToTiles, map1, defaultWaves, TowerType, TOWER_DATA, map2, TowerData, AttackModifiers} from './game';
 
 const MAPS = {map1, map2};
 
@@ -24,7 +24,7 @@ const checkForTowerBuilding = ({key}: KeyboardEvent) => {
 };
 
 const checkForTowerSelling = ({key}: KeyboardEvent) => {
-    if (key !== 'x') return;
+    if (key.toUpperCase() !== 'X') return;
 
     const [x, y] = selectedTile;
     if (!game.isBiome(Biome.Tower, x, y)) return;
@@ -37,7 +37,25 @@ const checkForTowerSelling = ({key}: KeyboardEvent) => {
     clearSelectedTile();
 };
 
-const ffIconDisplay = document.getElementById('ff-icon')!;
+const UPGRADE_KEYS: Record<string, keyof AttackModifiers> = {
+    Q: 'dmg',
+    W: 'attackCooldown',
+    E: 'range',
+};
+const checkForTowerUpgrades = ({key}: KeyboardEvent) => {
+    const upgrade = UPGRADE_KEYS[key.toUpperCase()];
+    if (!upgrade) return;
+
+    const [x, y] = selectedTile;
+    const tower = game.getTowerAt(x, y);
+    if (!tower) return;
+
+    game.buyUpgrade(tower.type, upgrade);
+    renderTowerBuildingData();
+    updateGold(game.playerGold);
+};
+
+const fastForwardIconDisplay = document.getElementById('fast-forward-icon')!;
 let gameSpeed = 1;
 let fastForward = false;
 const checkForFastForward = (event: KeyboardEvent) => {
@@ -46,12 +64,13 @@ const checkForFastForward = (event: KeyboardEvent) => {
 
     fastForward = !fastForward;
     gameSpeed = fastForward ? 3 : 1;
-    ffIconDisplay.style.visibility = fastForward ? 'visible' : 'hidden';
+    fastForwardIconDisplay.style.visibility = fastForward ? 'visible' : 'hidden';
 };
 
 window.addEventListener('keydown', event => [
     checkForTowerBuilding,
     checkForTowerSelling,
+    checkForTowerUpgrades,
     checkForFastForward,
 ].map(listener => listener(event)));
 
@@ -86,22 +105,24 @@ const TOWER_DISPLAY: Record<TowerType, [key: string, description: string]> = {
     [TowerType.Sniper]: ['3', '1 elite target'],
     [TowerType.Ice]: ['4', 'aoe slow'],
 };
-const TOWER_STAT_UI_MAP: Partial<Record<keyof TowerData, string>> = {
+const TOWER_STAT_ICONS: Partial<Record<keyof TowerData, string>> = {
     dmg: '<img src="sword.png" width="20px" height="20px" style="position: relative; top: 3px; padding-left: 5px;">',
     attackCooldown: '<img src="clock.png" width="20px" height="20px" style="position: relative; top: 3px; padding-left: 5px;">',
     range: '<img src="bow.png" width="20px" height="20px" style="position: relative; top: 3px; padding-left: 5px;">',
+    baseCost: '<img src="coin.png" width="20px" height="20px" style="position: relative; top: 3px; padding-left: 5px;">',
 };
+
 const towerBuildingDataDisplay = document.querySelector('span#tower-building-data')!;
 const renderTowerBuildingData = () => {
-    towerBuildingDataDisplay.innerHTML = Object.entries(TOWER_DATA).map(
+    towerBuildingDataDisplay.innerHTML = (Object.entries(TOWER_DATA) as [TowerType, TowerData][]).map(
         ([type, {dmg, attackCooldown, range}]) => `
             <div id="tower-${type}">
                 <div>
-                    [${TOWER_DISPLAY[type as TowerType][0]}] ${type}, ${TOWER_DISPLAY[type as TowerType][1]}, 
-                    <span id="stat-cost"><img src="coin.png" width="20px" height="20px" style="position: relative; top: 3px;">${game.getTowerCost(type as TowerType)}</span>
+                    [${TOWER_DISPLAY[type][0]}] ${type}, ${TOWER_DISPLAY[type][1]}, 
+                    <span id="stat-cost">${TOWER_STAT_ICONS['baseCost']} ${game.getTowerCost(type)}</span>
                 </div>
                 <div style="margin-left: 20px;">
-                    ${Object.keys({dmg, attackCooldown, range}).map(k => `<span id="stat-${k}">${TOWER_STAT_UI_MAP[k as keyof TowerData]}${TOWER_DATA[type as TowerType][k as keyof TowerData]}</span>`).join('')}
+                    ${(Object.keys({dmg, attackCooldown, range}) as (keyof AttackModifiers)[]).map(k => `<span id="modifier-${k}">${TOWER_STAT_ICONS[k]} ${game.getTowerStats(type)[k]}</span>`).join('')}
                 </div>
             </div>
         `
@@ -121,13 +142,14 @@ const processTiles = () => {
         ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, (x + 1) * TILE_SIZE, (y + 1) * TILE_SIZE);
     });
 };
-const processTowers = () => {
-    game.towers.forEach(t => {
-        if (t.attack(game.enemies, gameSpeed, {dmg: 0})) { // TODO implement multipliers
-            ctx.strokeStyle = 'white';
-            ctx.strokeRect(t.tileX * TILE_SIZE, t.tileY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        }
 
+const processTowers = () => {
+    game.allTowersAttack(gameSpeed).forEach(t => {
+        ctx.strokeStyle = 'white';
+        ctx.strokeRect(t.tileX * TILE_SIZE, t.tileY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+    });
+
+    game.towers.forEach(t => {
         ctx.drawImage(
             t.image,
             (t.tileX + 0.1) * TILE_SIZE,
@@ -187,6 +209,7 @@ const processSelectedTile = () => {
     ctx.strokeRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 };
 
+const UPGRADE_KEYS_LOOKUP = Object.entries(UPGRADE_KEYS).reduce((acc, [k, v]) => ({...acc, [v]: k}), {}) as Record<keyof AttackModifiers, string>;
 const selectedTowerStatsDisplay = document.querySelector('span#selected-tower')!;
 const printSelectedTowerStats = () => {
     const [x, y] = selectedTile;
@@ -197,15 +220,25 @@ const printSelectedTowerStats = () => {
     }
 
     selectedTowerStatsDisplay.innerHTML = `
+    <div>
         <span>${tower.type} at (${x + 1} | ${y + 1}) damage stats:</span><br>
         <span style="margin-left: 20px;">Total: ${tower.getDmgDealtTotal()}</span><br>
         ${Object.entries(tower.getDmgDealtByType())
             .filter(([_, v]) => v > 0)
             .reduce((acc, [k, v]) => acc + `<span style="margin-left: 20px;">vs ${k}: ${Math.floor(v)}</span><br>`, '')}
-    `;
+    </div>
+
+    <div style="margin-top: 20px">
+        <span>Available Upgrades:</span><br>
+        ${(['dmg', 'attackCooldown', 'range'] as (keyof AttackModifiers)[])
+            .map(k => `<span id="modifier-${k}" style="margin-left: 20px;">
+                    [${UPGRADE_KEYS_LOOKUP[k]}] ${TOWER_STAT_ICONS[k]} ${game.getUpgradeCost(tower.type, k)} ${TOWER_STAT_ICONS['baseCost']}
+                </span><br>`)
+            .join('')}
+    </div>`;
 
     ctx.beginPath();
-    ctx.arc((x + 0.5) * TILE_SIZE, (y + 0.5) * TILE_SIZE, tower.getRange() * TILE_SIZE, 0, 2 * Math.PI, false);
+    ctx.arc((x + 0.5) * TILE_SIZE, (y + 0.5) * TILE_SIZE, game.getTowerStats(tower.type).range * TILE_SIZE, 0, 2 * Math.PI, false);
     ctx.closePath();
 
     ctx.lineWidth = 1;

@@ -14,11 +14,11 @@ export type AttackModifiers = {
     dmg: number;
     attackCooldown: number;
     range: number;
-    attackEffects?: TowerAttackEffects;
 };
 
 export type TowerData = AttackModifiers & {
     baseCost: number;
+    attackEffects?: TowerAttackEffects;
     pickTargets: (enemies: Enemy[]) => Enemy[],
     imageSrc: {
         active: string,

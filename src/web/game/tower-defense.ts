@@ -1,7 +1,7 @@
 import {Biome} from './biome';
 import {Cardinal} from './cardinal';
 import {ENEMY_SPAWNER, Enemy, EnemyType} from './enemies';
-import {TOWER_DATA, Tower, TowerType} from './towers';
+import {AttackModifiers, TOWER_DATA, Tower, TowerData, TowerType} from './towers';
 import {Wave} from './waves';
 
 const generateEndlessSpawnTable = () => {
@@ -19,10 +19,20 @@ const generateEndlessSpawnTable = () => {
 
 const TOWER_COST_SCALING = 1.2;
 const TOWER_SALE_GOLD_RECOVERY = 0.7;
+
+const UPGRADE_BASE_COST = 50;
+const UPGRADE_COST_SCALING = 1.5;
+const UPGRADE_EFFECT_SCALING: Record<keyof AttackModifiers, number> = {
+    dmg: 1.1,
+    range: 1.1,
+    attackCooldown: 0.9,
+};
+
 const BASE_GOLD_REWARD_PER_WAVE = 25;
 const SCALING_GOLD_REWARD_PER_WAVE = 5;
-const ENDLESS_HP_SCALING_PER_WAVE = 1.05;
-const ENDLESS_WEIGHT_SCALING_PER_WAVE = 1.15;
+
+const ENDLESS_HP_SCALING_PER_WAVE = 1.1;
+const ENDLESS_WEIGHT_SCALING_PER_WAVE = 1.2;
 const ENDLESS_SPAWN_TICKETS: Record<EnemyType, number> = {
     [EnemyType.Wippa]: 5,
     [EnemyType.Weirdge]: 1,
@@ -45,6 +55,14 @@ export class TowerDefense {
     public waveIdx = 0;
     private towerCount: Record<TowerType, number> = Object.keys(TOWER_DATA).reduce((acc, k) => ({...acc, [k]: 0}), {}) as any;
     private activeEnemies = 0;
+    private upgrades: Record<TowerType, Record<keyof AttackModifiers, number>> = Object.keys(TOWER_DATA).reduce((acc, k) => ({
+        ...acc,
+        [k]: {dmg: 1, attackCooldown: 1, range: 1},
+    }), {} as Record<keyof AttackModifiers, number>) as any;
+    private upgradeLevels: Record<TowerType, Record<keyof AttackModifiers, number>> = Object.keys(TOWER_DATA).reduce((acc, k) => ({
+        ...acc,
+        [k]: {dmg: 0, attackCooldown: 0, range: 0},
+    }), {} as Record<keyof AttackModifiers, number>) as any;
 
     constructor(
         private map: Biome[][],
@@ -181,15 +199,30 @@ export class TowerDefense {
             if (enemyIdx > wave.length - 1) {
                 clearInterval(spawner);
             }
-        }, (1000 + wave.length * 150) / wave.length); // TODO: modify wave spawn delay here
-    }
-
-    currentWave() {
-        return this.waves[this.waveIdx];
+        }, (1000 + wave.length * 150) / wave.length);
     }
 
     getTowerCost(t: TowerType) {
         return Math.round(TOWER_DATA[t].baseCost * Math.pow(TOWER_COST_SCALING, this.towerCount[t]));
+    }
+
+    getTowerStats(t: TowerType): AttackModifiers {
+        return (Object.entries(this.upgrades[t]) as [keyof AttackModifiers, number][])
+            .reduce((acc, [k, v]) => ({...acc, [k]: Math.round(100 * TOWER_DATA[t][k] * v) / 100}), {} as AttackModifiers);
+    }
+
+    getUpgradeCost(t: TowerType, stat: keyof AttackModifiers) {
+        return Math.round(UPGRADE_BASE_COST * Math.pow(UPGRADE_COST_SCALING, this.upgradeLevels[t][stat]));
+    }
+
+    buyUpgrade(t: TowerType, stat: keyof AttackModifiers) {
+        const cost = this.getUpgradeCost(t, stat);
+        if (this.playerGold < cost) return;
+
+        this.upgradeLevels[t][stat]++;
+        this.upgrades[t][stat] *= UPGRADE_EFFECT_SCALING[stat];
+
+        this.playerGold -= cost;
     }
 
     /**
@@ -235,6 +268,10 @@ export class TowerDefense {
         this.towerCount[t.type]--;
         const tIdx = this.towers.findIndex(_t => _t === t);
         this.towers.splice(tIdx, 1);
+    }
+
+    public allTowersAttack(gameSpeed: number) {
+        return this.towers.filter(t => t.attack(this.enemies, gameSpeed, this.upgrades[t.type]));
     }
 
     biomeAt(x: number, y: number) {

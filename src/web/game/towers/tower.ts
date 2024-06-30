@@ -39,11 +39,11 @@ export class Tower {
     /**
      * @returns true iff an attack was made
      */
-    attack(enemies: Enemy[], timeMultiplier: number, modifiers?: Partial<AttackModifiers>): boolean {
+    attack(enemies: Enemy[], timeMultiplier: number, modifiers: AttackModifiers): boolean {
         const inRange = enemies.filter(e => {
             const [x, y] = e.getPosition();
             const distance = Math.sqrt(Math.pow(this.tileX - x, 2) + Math.pow(this.tileY - y, 2));
-            return distance <= (this.range + (modifiers?.range || 0));
+            return distance <= (this.range * modifiers.range);
         });
         if (!inRange.length) {
             this.setIdle(true);
@@ -53,11 +53,11 @@ export class Tower {
 
         const now = Date.now();
         const elapsed = (now - this.lastAttacked) * timeMultiplier;
-        const mayAttack = elapsed * (modifiers?.attackCooldown || 1) > this.attackCooldown * 1000;
+        const mayAttack = (elapsed / modifiers.attackCooldown) > this.attackCooldown * 1000;
         if (!mayAttack) return false;
 
         for (const e of this.pickTargets(inRange)) {
-            const dmg = e.takeDamage(this.dmg + (modifiers?.dmg || 0));
+            const dmg = e.takeDamage(this.dmg * modifiers.dmg);
             this.dmgDealtByType[e.type] += dmg;
             this.dmgDealtTotal += dmg;
 
@@ -80,11 +80,7 @@ export class Tower {
     getCost() {
         return this.cost;
     }
-
-    getRange() {
-        return this.range;
-    }
-
+    
     getDmgDealtTotal() {
         return Math.round(this.dmgDealtTotal);
     }

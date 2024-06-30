@@ -29,7 +29,8 @@
 ✓ tower attack special effects
 ✓ tower description
 ✓ ice tower
-tower upgrades
+✓ tower range indicator
+✓ tower upgrades
 more enemy types
 more tower types
 more waves

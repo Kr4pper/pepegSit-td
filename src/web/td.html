@@ -16,7 +16,7 @@
         <span id="gold"></span>
     </div>
     <div style="position: relative; top: 10px">
-        <span id="ff-icon" style="visibility: hidden;">⏩ </span>
+        <span id="fast-forward-icon" style="visibility: hidden;">⏩ </span>
         Wave:
         <span id="wave"></span>
     </div>
@@ -33,11 +33,13 @@
         <p>This is where the game canvas should have loaded, make sure you don't have any browser extensions preventing
             it from loading</p>
     </canvas>
+
     <div>
-        <div id="tower-building" style="margin-bottom: 10px;">
+        <div id="tower-building" style="float: left; margin-bottom: 50px;">
             <span>TOWER BUILDING</span><br><br>
             <span id="tower-building-data"><!-- populated from js --></span>
         </div>
+
         <div id="tower-stats">
             <span>TOWER STATS</span><br><br>
             <span id="selected-tower"><!-- populated from js --></span>
@@ -45,38 +47,42 @@
     </div>
 </div>
 
-<div style="float: left;">
-    <div id="menu">
-        <h3>Menu</h3>
-        <button id="restart" style="margin-right: 10px;">Restart Game</button>
-        <select id="map-selection">
-            <!-- populated from js -->
-        </select>
-        <button id="load-map">Load Map</button>
-    </div>
+<div>
+    <div style="float: left;">
+        <div id="menu">
+            <h3>Menu</h3>
+            <button id="restart" style="margin-right: 10px;">Restart Game</button>
+            <select id="map-selection">
+                <!-- populated from js -->
+            </select>
+            <button id="load-map">Load Map</button>
+        </div>
 
-    <div id="tutorial">
-        <h3>How To Play</h3>
-        <div>
-            <span>You must defend your home from nasty invaders.</span><br>
-            <span>They will arrive in waves, make sure to wipe them out.</span><br>
-            <span>Build your defense from a variety of towers to stop them.</span><br>
-            <span>Select an available tile by using left click and then build one of the available towers using the
-                listed key binding.</span><br>
-            <span>Select a tower and press 'X' to sell it for 70% of it's cost.</span><br>
-            <span>Use SPACE to toggle fast forward mode, making the game run at 3x speed.</span><br>
+        <div id="tutorial">
+            <h3>How To Play</h3>
+            <div>
+                <span>You must defend your home from nasty invaders.</span><br>
+                <span>They will arrive in waves, make sure to wipe them out.</span><br>
+                <span>Build your defense from a variety of towers to stop them.</span><br>
+                <span>Select an available tile by using left click and then build one of the available towers using the
+                    listed key binding.</span><br>
+                <span>Select a tower and press 'X' to sell it for 70% of it's cost.</span><br>
+                <span>Use SPACE to toggle fast forward mode, making the game run at 3x speed.</span><br>
+                <span>Select a tower and press one of the listed upgrade key bindings to upgrade all towers of that
+                    type.</span><br>
+            </div>
         </div>
     </div>
-</div>
 
-<div style="position: absolute; right: 0px; bottom: 0px;">
-    <span id="version" style="position: relative; bottom: 5px;">
-        <a href="./changelog.txt" target="changelog">%VERSION%</a>
-    </span>
-    <img src="./pepegSit.jpg">
-</div>
+    <div style="position: absolute; right: 0px; bottom: 0px;">
+        <span id="version" style="position: relative; bottom: 5px;">
+            <a href="./changelog.txt" target="changelog">%VERSION%</a>
+        </span>
+        <img src="./pepegSit.jpg">
+    </div>
 
-<script>var exports = {};</script>
-<script src="./bundle.js" type="text/javascript"></script>
+    <script>var exports = {};</script>
+    <script src="./bundle.js" type="text/javascript"></script>
+</div>
 
 </html>
